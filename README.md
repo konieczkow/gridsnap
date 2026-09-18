@@ -19,7 +19,7 @@ A Divvy-style window snapper for macOS. Press a shortcut, a grid appears, drag a
 ## Install
 
 ```sh
-git clone https://github.com/YOUR_USER/gridsnap.git
+git clone https://github.com/konieczkow/gridsnap.git
 cd gridsnap
 ./build.sh install
 open /Applications/GridSnap.app
