@@ -30,7 +30,7 @@ final class GridView: NSView {
 
     override func mouseDown(with e: NSEvent) {
         original = targetWindow.flatMap(axFrame)
-        start = cell(e); end = start; needsDisplay = true; preview()
+        start = cell(e); end = start; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
     }
     func track(_ e: NSEvent) {   // cursor outside the panel = no selection, so releasing there cancels
         let new = bounds.contains(convert(e.locationInWindow, from: nil)) ? cell(e) : nil
@@ -39,7 +39,7 @@ final class GridView: NSView {
     }
     override func mouseDragged(with e: NSEvent) { track(e) }
     override func mouseUp(with e: NSEvent) {
-        track(e)
+        track(e); preview()   // a plain click never dragged, so apply here
         if selection != nil, let w = targetWindow, let o = original { lastSnap = (w, o.0, o.1) }
         let save = (e.modifierFlags.contains(.shift) || recordMode) ? selectionFraction : nil   // shift-release saves a preset
         hideGrid()
