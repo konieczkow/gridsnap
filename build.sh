@@ -14,5 +14,5 @@ cat > $APP/Contents/Info.plist <<PLIST
 <key>LSUIElement</key><true/>
 </dict></plist>
 PLIST
-tccutil reset Accessibility local.gridsnap >/dev/null 2>&1 || true  # ad-hoc signature changes per build; re-prompt instead of silently failing
-echo "built $APP — run: open $APP (re-grant Accessibility when prompted)"
+codesign --force --sign "GridSnap Dev" "$APP"
+echo "built + signed $APP — run: open $APP"
