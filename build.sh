@@ -1,5 +1,6 @@
 #!/bin/sh -e
-# Builds build/GridSnap.app (universal, macOS 14+). `./build.sh install` also copies it to /Applications.
+# Builds build/GridSnap.app (universal, macOS 14+). `./build.sh install` also copies it to /Applications,
+# `./build.sh release` zips it for a GitHub release.
 # No Xcode project: swiftc compiles every file in Sources/. Needs Command Line Tools with the macOS 26 SDK.
 # Signing: CODESIGN_IDENTITY, else a "GridSnap Dev" certificate if the keychain has one, else ad-hoc.
 # Ad-hoc signatures change every build, which makes macOS forget the Accessibility grant (see README).
@@ -14,7 +15,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>GridSnap</string>
-<key>CFBundleIdentifier</key><string>local.gridsnap</string>
+<key>CFBundleIdentifier</key><string>com.zerodivisionerror.gridsnap</string>
 <key>CFBundleName</key><string>GridSnap</string>
 <key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>
@@ -28,4 +29,5 @@ PLIST
 IDENTITY="${CODESIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | grep -o '"GridSnap Dev"' | head -1 | tr -d '"')}"
 codesign --force --sign "${IDENTITY:--}" "$APP"
 echo "built $APP (signed: ${IDENTITY:-ad-hoc})"
+if [ "$1" = release ]; then ditto -c -k --keepParent "$APP" "build/GridSnap-$VERSION.zip"; echo "zipped build/GridSnap-$VERSION.zip"; fi
 if [ "$1" = install ]; then rm -rf /Applications/GridSnap.app; cp -R "$APP" /Applications/; echo "installed /Applications/GridSnap.app"; fi

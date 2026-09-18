@@ -20,14 +20,21 @@ An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Pres
 
 ## Install
 
+Download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/konieczkow/gridsnap/releases/latest), unzip it and drag GridSnap to Applications.
+
+Two one-time prompts on first launch:
+
+1. **"Apple could not verify GridSnap"**: the app is not notarized, since that needs a paid Apple developer account. Open System Settings › Privacy & Security, scroll down, and click **Open Anyway**.
+2. **Accessibility**: GridSnap needs it to move other apps' windows. Turn it on under System Settings › Privacy & Security › Accessibility, then launch again.
+
+Or build it yourself:
+
 ```sh
 git clone https://github.com/konieczkow/gridsnap.git
 cd gridsnap
 ./build.sh install
 open /Applications/GridSnap.app
 ```
-
-On first launch macOS asks for Accessibility permission, which GridSnap needs to move other apps' windows. Turn it on under System Settings › Privacy & Security › Accessibility, then launch again.
 
 ## Use
 
