@@ -54,6 +54,8 @@ Wider gutters in the grid mark halves, thirds and quarters.
 ./build.sh install    # also copies it to /Applications
 ```
 
+`Resources/icon.png` is the icon source; regenerate `AppIcon.icns` from it with `iconutil` if you change it.
+
 Files in `Sources/`: `main.swift` startup, `AX.swift` window plumbing, `Grid.swift` overlay, `Presets.swift`, `Hotkeys.swift`, `ShortcutButton.swift` recorder, `SettingsWindow.swift`, `Menu.swift`, `Defaults.swift` stored settings.
 
 macOS ties the Accessibility grant to the app's code signature. The default ad-hoc signature changes with every build, so you'd re-grant permission after each rebuild. To avoid that, create a self-signed certificate once (Keychain Access › Certificate Assistant › Create a Certificate, type "Code Signing", name it `GridSnap Dev`) and the build script picks it up. Any other identity works via `CODESIGN_IDENTITY="name" ./build.sh`.

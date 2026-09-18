@@ -6,7 +6,8 @@
 cd "$(dirname "$0")"
 APP=build/GridSnap.app
 VERSION=0.1.0
-rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
+rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 for ARCH in arm64 x86_64; do swiftc -O -target "$ARCH-apple-macos14.0" Sources/*.swift -o "build/GridSnap-$ARCH"; done
 lipo -create build/GridSnap-arm64 build/GridSnap-x86_64 -output "$APP/Contents/MacOS/GridSnap"
 cat > "$APP/Contents/Info.plist" <<PLIST
@@ -15,6 +16,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <key>CFBundleExecutable</key><string>GridSnap</string>
 <key>CFBundleIdentifier</key><string>local.gridsnap</string>
 <key>CFBundleName</key><string>GridSnap</string>
+<key>CFBundleIconFile</key><string>AppIcon</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleShortVersionString</key><string>$VERSION</string>
 <key>CFBundleVersion</key><string>$VERSION</string>
