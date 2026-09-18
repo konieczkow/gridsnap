@@ -1,6 +1,8 @@
 # GridSnap
 
-A Divvy-style window snapper for macOS. Press a shortcut, a grid appears, drag across the cells you want, and the window snaps there. Save a region as a preset and it becomes a one-keystroke snap.
+An open source alternative to Divvy for macOS. Press a shortcut, a grid appears, drag across the cells you want, and the window snaps there. Save a region as a preset and it becomes a one-keystroke snap.
+
+![The GridSnap grid with the left half selected](docs/grid.png)
 
 - Grid overlay with live preview: the window follows your drag and jumps back if you cancel
 - Presets with their own global shortcuts
