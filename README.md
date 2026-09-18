@@ -11,10 +11,11 @@ An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Pres
 - Snap the focused window or the one under the cursor
 - Works across multiple displays
 - Menu bar app, launch at login, no Dock icon
+- No network access, no analytics, no accounts
 
 ## Requirements
 
-- macOS 14 or later. On macOS 26 the grid uses the system glass material; older versions get a frosted panel.
+- macOS 14 or later. Tested on macOS 26; on older versions the grid gets a frosted panel instead of the glass material.
 - Apple Silicon or Intel.
 - To build: Xcode Command Line Tools with the macOS 26 SDK. No Xcode project, `swiftc` compiles the files directly.
 
