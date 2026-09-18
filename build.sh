@@ -29,5 +29,5 @@ PLIST
 IDENTITY="${CODESIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | grep -o '"GridSnap Dev"' | head -1 | tr -d '"')}"
 codesign --force --sign "${IDENTITY:--}" "$APP"
 echo "built $APP (signed: ${IDENTITY:-ad-hoc})"
-if [ "$1" = release ]; then ditto -c -k --keepParent "$APP" "build/GridSnap-$VERSION.zip"; echo "zipped build/GridSnap-$VERSION.zip"; fi
+if [ "$1" = release ]; then ditto -c -k --keepParent "$APP" "build/GridSnap-$VERSION.zip"; echo "zipped build/GridSnap-$VERSION.zip  sha256 $(shasum -a 256 "build/GridSnap-$VERSION.zip" | cut -d' ' -f1)  (update Casks/gridsnap.rb in homebrew-tap)"; fi
 if [ "$1" = install ]; then rm -rf /Applications/GridSnap.app; cp -R "$APP" /Applications/; echo "installed /Applications/GridSnap.app"; fi

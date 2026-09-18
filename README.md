@@ -21,7 +21,15 @@ An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Pres
 
 ## Install
 
-Download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/konieczkow/gridsnap/releases/latest), unzip it and drag GridSnap to Applications.
+With Homebrew:
+
+```sh
+brew install --cask konieczkow/tap/gridsnap
+```
+
+Add `--no-quarantine` before `--cask` and you can skip the Gatekeeper prompt described below.
+
+Or download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/konieczkow/gridsnap/releases/latest), unzip it and drag GridSnap to Applications.
 
 Two one-time prompts on first launch:
 
