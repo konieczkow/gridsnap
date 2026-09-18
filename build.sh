@@ -1,18 +1,29 @@
 #!/bin/sh -e
-# ponytail: no Xcode project. The .app wrapper exists only so the Accessibility list shows "GridSnap".
+# Builds build/GridSnap.app (universal, macOS 14+). `./build.sh install` also copies it to /Applications.
+# No Xcode project: swiftc compiles every .swift file here. Needs Command Line Tools with the macOS 26 SDK.
+# Signing: CODESIGN_IDENTITY, else a "GridSnap Dev" certificate if the keychain has one, else ad-hoc.
+# Ad-hoc signatures change every build, which makes macOS forget the Accessibility grant (see README).
 cd "$(dirname "$0")"
-APP=/Applications/GridSnap.app
-mkdir -p $APP/Contents/MacOS
-swiftc -O main.swift -o $APP/Contents/MacOS/GridSnap
-cat > $APP/Contents/Info.plist <<PLIST
+APP=build/GridSnap.app
+VERSION=0.1.0
+rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
+for ARCH in arm64 x86_64; do swiftc -O -target "$ARCH-apple-macos14.0" *.swift -o "build/GridSnap-$ARCH"; done
+lipo -create build/GridSnap-arm64 build/GridSnap-x86_64 -output "$APP/Contents/MacOS/GridSnap"
+cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>GridSnap</string>
 <key>CFBundleIdentifier</key><string>local.gridsnap</string>
 <key>CFBundleName</key><string>GridSnap</string>
 <key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>$VERSION</string>
+<key>CFBundleVersion</key><string>$VERSION</string>
+<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
 <key>LSUIElement</key><true/>
 </dict></plist>
 PLIST
-codesign --force --sign "GridSnap Dev" "$APP"
-echo "built + signed $APP — run: open $APP"
+IDENTITY="${CODESIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | grep -o '"GridSnap Dev"' | head -1 | tr -d '"')}"
+codesign --force --sign "${IDENTITY:--}" "$APP"
+echo "built $APP (signed: ${IDENTITY:-ad-hoc})"
+if [ "$1" = install ]; then rm -rf /Applications/GridSnap.app; cp -R "$APP" /Applications/; echo "installed /Applications/GridSnap.app"; fi
