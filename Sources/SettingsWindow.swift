@@ -5,7 +5,10 @@ final class MenuActions: NSObject {
     @objc func undo() { undoSnap() }
     @objc func applyPresetItem(_ item: NSMenuItem) { if item.tag < presets.count { applyPreset(presets[item.tag]) } }
     @objc func pickTarget(_ b: NSButton) { defaults.set(b.tag == 1, forKey: "underCursor") }
-    @objc func showPrefs() { prefs.center(); prefs.makeKeyAndOrderFront(nil); NSApp.activate() }
+    @objc func showPrefs() {
+        NSApp.unhide(nil); NSApp.activate(ignoringOtherApps: true)   // accessory apps only come forward when forced (cooperative activate is often refused)
+        prefs.center(); prefs.makeKeyAndOrderFront(nil)
+    }
     @objc func plusMinus(_ s: NSSegmentedControl) {
         if s.selectedSegment == 0 { recordMode = true; showGrid() }
         else if presetTable.selectedRow >= 0 { presets.remove(at: presetTable.selectedRow) }

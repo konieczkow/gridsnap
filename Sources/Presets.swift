@@ -33,7 +33,7 @@ func modifierFlags(_ mods: Int) -> NSEvent.ModifierFlags {
 }
 
 func newPreset(_ f: NSRect) {
-    NSApp.activate()
+    NSApp.unhide(nil); NSApp.activate(ignoringOtherApps: true)   // same reason as showPrefs
     let dialog = NSAlert()
     dialog.messageText = "New preset"
     dialog.addButton(withTitle: "Save"); dialog.addButton(withTitle: "Cancel")
