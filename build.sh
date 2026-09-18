@@ -1,13 +1,13 @@
 #!/bin/sh -e
 # Builds build/GridSnap.app (universal, macOS 14+). `./build.sh install` also copies it to /Applications.
-# No Xcode project: swiftc compiles every .swift file here. Needs Command Line Tools with the macOS 26 SDK.
+# No Xcode project: swiftc compiles every file in Sources/. Needs Command Line Tools with the macOS 26 SDK.
 # Signing: CODESIGN_IDENTITY, else a "GridSnap Dev" certificate if the keychain has one, else ad-hoc.
 # Ad-hoc signatures change every build, which makes macOS forget the Accessibility grant (see README).
 cd "$(dirname "$0")"
 APP=build/GridSnap.app
 VERSION=0.1.0
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
-for ARCH in arm64 x86_64; do swiftc -O -target "$ARCH-apple-macos14.0" *.swift -o "build/GridSnap-$ARCH"; done
+for ARCH in arm64 x86_64; do swiftc -O -target "$ARCH-apple-macos14.0" Sources/*.swift -o "build/GridSnap-$ARCH"; done
 lipo -create build/GridSnap-arm64 build/GridSnap-x86_64 -output "$APP/Contents/MacOS/GridSnap"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
