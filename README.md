@@ -27,13 +27,11 @@ With Homebrew:
 brew install --cask konieczkow/tap/gridsnap
 ```
 
-Add `--no-quarantine` before `--cask` and you can skip the Gatekeeper prompt described below.
-
 Or download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/konieczkow/gridsnap/releases/latest), unzip it and drag GridSnap to Applications.
 
 Two one-time prompts on first launch:
 
-1. **"Apple could not verify GridSnap"**: the app is not notarized, since that needs a paid Apple developer account. Open System Settings › Privacy & Security, scroll down, and click **Open Anyway**.
+1. **"Apple could not verify GridSnap"**: the app is not notarized, since that needs a paid Apple developer account. Click **Done** (not Move to Trash), open System Settings › Privacy & Security, scroll to the bottom and click **Open Anyway**. Or skip the dialog from a terminal: `xattr -d com.apple.quarantine /Applications/GridSnap.app`
 2. **Accessibility**: GridSnap needs it to move other apps' windows. Turn it on under System Settings › Privacy & Security › Accessibility, then launch again.
 
 Or build it yourself:
