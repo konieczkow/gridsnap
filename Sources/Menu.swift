@@ -2,6 +2,10 @@ import Cocoa
 import ServiceManagement
 
 let presetMenu = NSMenu()
+let undoItem = NSMenuItem(title: "Undo Last Snap", action: #selector(MenuActions.undo), keyEquivalent: "")
+func refreshUndoItem() {
+    undoItem.keyEquivalent = String(undoCombo.label.last ?? " ").lowercased(); undoItem.keyEquivalentModifierMask = modifierFlags(undoCombo.mods)
+}
 func rebuildPresetMenu() {
     presetMenu.removeAllItems()
     for (i, p) in presets.enumerated() {
@@ -16,8 +20,7 @@ let statusItem: NSStatusItem = {
     let status = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     status.button?.image = NSImage(systemSymbolName: "square.grid.3x2", accessibilityDescription: "GridSnap")
     let menu = NSMenu()
-    let undoItem = menu.addItem(withTitle: "Undo Last Snap", action: #selector(MenuActions.undo), keyEquivalent: "z")
-    undoItem.keyEquivalentModifierMask = [.control, .option]; undoItem.target = actions
+    undoItem.target = actions; refreshUndoItem(); menu.addItem(undoItem)
     menu.addItem(withTitle: "Presets", action: nil, keyEquivalent: "").submenu = presetMenu
     rebuildPresetMenu()
     menu.addItem(withTitle: "Settings…", action: #selector(MenuActions.showPrefs), keyEquivalent: ",").target = actions

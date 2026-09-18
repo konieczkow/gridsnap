@@ -13,7 +13,7 @@ func registerAll() {
            let r = r { hotKeyRefs.append(r) }
     }
     reg(mainCombo.code, mainCombo.mods, 1)
-    reg(kVK_ANSI_Z, optionKey | controlKey, 2)   // note: fixed undo shortcut, add a recorder when asked
+    reg(undoCombo.code, undoCombo.mods, 2)
     for (i, p) in presets.enumerated() { reg(p.keyCode, p.keyMods, UInt32(100 + i)) }
 }
 func installHotKeyHandler() {

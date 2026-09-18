@@ -46,13 +46,13 @@ open /Applications/GridSnap.app
 | Dismiss | Click anywhere outside the grid |
 | Save a preset | Hold Shift when releasing, or use **+** in Settings |
 | Apply a preset | Its shortcut, or the Presets menu |
-| Undo last snap | ⌃⌥Z, press again to redo |
+| Undo last snap | ⌃⌥Z by default, press again to redo |
 
 The grid appears on the display under the cursor and the window snaps to that display, so moving the mouse to another monitor before pressing the shortcut moves the window there. Presets snap to the display the window is already on.
 
 Wider gutters in the grid mark halves, thirds and quarters.
 
-**Settings** (menu bar icon › Settings…) holds the shortcut, columns and rows, the gap in points between snapped windows, the target rule, and the presets table. Names and shortcuts are editable in place; **−** removes the selected preset.
+**Settings** (menu bar icon › Settings…) holds both shortcuts, columns and rows, the gap in points between snapped windows, the target rule, and the presets table. Names and shortcuts are editable in place; **−** removes the selected preset.
 
 ## Development
 
@@ -71,7 +71,6 @@ macOS ties the Accessibility grant to the app's code signature. The default ad-h
 
 - Full-screen windows ignore snapping.
 - Some apps enforce a minimum window size and won't shrink to a small cell.
-- The undo shortcut is fixed at ⌃⌥Z.
 
 ## License
 

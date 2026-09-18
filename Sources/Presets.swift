@@ -10,9 +10,13 @@ var mainCombo: (code: Int, mods: Int, label: String) {
     (defaults.object(forKey: "keyCode") as? Int ?? kVK_ANSI_D, defaults.object(forKey: "keyMods") as? Int ?? (optionKey | controlKey),
      defaults.string(forKey: "keyLabel") ?? "⌃⌥D")
 }
-func conflict(_ code: Int, _ mods: Int, excluding row: Int? = nil, checkMain: Bool = true) -> String? {
+var undoCombo: (code: Int, mods: Int, label: String) {
+    (defaults.object(forKey: "undoCode") as? Int ?? kVK_ANSI_Z, defaults.object(forKey: "undoMods") as? Int ?? (optionKey | controlKey),
+     defaults.string(forKey: "undoLabel") ?? "⌃⌥Z")
+}
+func conflict(_ code: Int, _ mods: Int, excluding row: Int? = nil, checkMain: Bool = true, checkUndo: Bool = true) -> String? {
     if checkMain, code == mainCombo.code, mods == mainCombo.mods { return "That shortcut already shows the grid." }
-    if code == kVK_ANSI_Z, mods == optionKey | controlKey { return "That shortcut is Undo." }
+    if checkUndo, code == undoCombo.code, mods == undoCombo.mods { return "That shortcut is Undo." }
     if let p = presets.enumerated().first(where: { $0.offset != row && $0.element.keyCode == code && $0.element.keyMods == mods }) {
         return "That shortcut is used by “\(p.element.name)”."
     }
