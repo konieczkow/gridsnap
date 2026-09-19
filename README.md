@@ -5,7 +5,7 @@ An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Pres
 ![Pressing the shortcut, dragging on the grid, and the window following](docs/demo.gif)
 
 - Grid overlay with live preview: the window follows your drag and jumps back if you cancel
-- Presets with their own global shortcuts
+- Presets with their own global shortcuts; a Full screen preset on ⌃⌥F comes built in
 - Undo the last snap
 - Configurable grid size and gap between windows
 - Snap the focused window or the one under the cursor
