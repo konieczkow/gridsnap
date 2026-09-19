@@ -32,7 +32,7 @@ Or download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/ko
 Two one-time prompts on first launch:
 
 1. **"Apple could not verify GridSnap"**: the app is not notarized, since that needs a paid Apple developer account. Click **Done** (not Move to Trash), open System Settings › Privacy & Security, scroll to the bottom and click **Open Anyway**. Or skip the dialog from a terminal: `xattr -d com.apple.quarantine /Applications/GridSnap.app`
-2. **Accessibility**: GridSnap needs it to move other apps' windows. Turn it on under System Settings › Privacy & Security › Accessibility, then launch again.
+2. **Accessibility**: GridSnap needs it to move other apps' windows. Turn it on under System Settings › Privacy & Security › Accessibility (the menu bar icon has a **Grant Accessibility…** item that opens that pane). GridSnap picks the grant up on its own, no relaunch needed.
 
 Or build it yourself:
 

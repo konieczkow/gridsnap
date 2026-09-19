@@ -9,6 +9,9 @@ final class MenuActions: NSObject {
         NSApp.unhide(nil); NSApp.activate(ignoringOtherApps: true)   // accessory apps only come forward when forced (cooperative activate is often refused)
         prefs.center(); prefs.makeKeyAndOrderFront(nil)
     }
+    @objc func openAccessibility() {
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!)
+    }
     @objc func plusMinus(_ s: NSSegmentedControl) {
         if s.selectedSegment == 0 { recordMode = true; showGrid() }
         else if presetTable.selectedRow >= 0 { presets.remove(at: presetTable.selectedRow) }
