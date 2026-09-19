@@ -6,7 +6,7 @@
 # Ad-hoc signatures change every build, which makes macOS forget the Accessibility grant (see README).
 cd "$(dirname "$0")"
 APP=build/GridSnap.app
-VERSION=0.1.2
+VERSION=0.1.3
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 for ARCH in arm64 x86_64; do swiftc -O -target "$ARCH-apple-macos14.0" Sources/*.swift -o "build/GridSnap-$ARCH"; done
