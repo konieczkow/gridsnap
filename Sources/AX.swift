@@ -27,11 +27,10 @@ func windowUnderCursor() -> AXUIElement? {
 func pickTarget() -> AXUIElement? { (defaults.bool(forKey: "underCursor") ? windowUnderCursor() : nil) ?? focusedWindow() }
 func screenUnderCursor() -> NSScreen { NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? .main! }
 
-func axSet(_ win: AXUIElement, _ pos: CGPoint, _ size: CGSize) {
-    var pos = pos, size = size
-    // note: position then size; add a second position pass if a window lands off-screen when crossing displays
+func axSet(_ win: AXUIElement, _ pos: CGPoint, _ size: CGSize? = nil) {
+    var pos = pos
     AXUIElementSetAttributeValue(win, kAXPositionAttribute as CFString, AXValueCreate(.cgPoint, &pos)!)
-    AXUIElementSetAttributeValue(win, kAXSizeAttribute as CFString, AXValueCreate(.cgSize, &size)!)
+    if var size { AXUIElementSetAttributeValue(win, kAXSizeAttribute as CFString, AXValueCreate(.cgSize, &size)!) }
 }
 func axFrame(_ win: AXUIElement) -> (CGPoint, CGSize)? {
     var p: CFTypeRef?, s: CFTypeRef?
@@ -47,7 +46,13 @@ func screenOf(_ win: AXUIElement) -> NSScreen {   // the screen holding the wind
     return NSScreen.screens.first { NSMouseInRect(c, $0.frame, false) } ?? .main!
 }
 func applyFrame(_ win: AXUIElement, _ r: NSRect) {
-    axSet(win, CGPoint(x: r.minX, y: NSScreen.screens[0].frame.maxY - r.maxY), CGSize(width: r.width, height: r.height)) // AX origin is top-left of primary screen
+    let top = NSScreen.screens[0].frame.maxY   // AX origin is top-left of primary screen
+    let pos = CGPoint(x: r.minX, y: top - r.maxY)
+    axSet(win, pos, CGSize(width: r.width, height: r.height))
+    guard let f = axFrame(win),
+          let v = NSScreen.screens.first(where: { NSMouseInRect(NSPoint(x: r.midX, y: r.midY), $0.frame, false) })?.visibleFrame else { return }
+    let fit = CGPoint(x: max(min(pos.x, v.maxX - f.1.width), v.minX), y: max(min(pos.y, top - v.minY - f.1.height), top - v.maxY))
+    if abs(fit.x - f.0.x) > 1 || abs(fit.y - f.0.y) > 1 { axSet(win, fit) }
 }
 func screenFrame(fraction r: NSRect, on screen: NSScreen) -> NSRect {
     let g = CGFloat(max(defaults.double(forKey: "gap"), 0)) / 2   // half on the screen edge, half on each frame = one gap everywhere

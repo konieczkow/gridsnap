@@ -77,7 +77,7 @@ macOS ties the Accessibility grant to the app's code signature. The default ad-h
 ## Known limitations
 
 - Full-screen windows ignore snapping.
-- Some apps enforce a minimum window size and won't shrink to a small cell.
+- Some apps enforce a minimum window size and won't shrink to a small cell. The window then stays on screen and overlaps the neighbouring cells.
 
 ## License
 
