@@ -23,7 +23,7 @@ func conflict(_ code: Int, _ mods: Int, excluding row: Int? = nil, checkMain: Bo
     return nil
 }
 func applyPreset(_ p: Preset) {
-    view.cancel()
+    cancelGrid()
     guard let win = pickTarget() else { return }
     if let o = axFrame(win) { lastSnap = (win, o.0, o.1) }
     applyFrame(win, screenFrame(fraction: NSRect(x: p.x, y: p.y, width: p.w, height: p.h), on: screenOf(win)))
