@@ -51,7 +51,7 @@ open /Applications/GridSnap.app
 | Move the selection | Arrow keys |
 | Grow or shrink it | Shift+→ / Shift+↑ grow, Shift+← / Shift+↓ shrink |
 | Use another display's grid | Click it, or press Tab |
-| Cancel | Esc, or drag outside the panel and release |
+| Cancel | Esc |
 | Dismiss | Click anywhere outside the grid |
 | Save a preset | Hold Shift when releasing or pressing Return, or use **+** in Settings |
 | Apply a preset | Its shortcut, or the Presets menu |
