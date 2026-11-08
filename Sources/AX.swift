@@ -1,7 +1,6 @@
 import Cocoa
 
 var targetWindow: AXUIElement?
-var targetScreen: NSScreen = .main!
 var recordMode = false   // grid open only to pick a region for a new preset; nothing moves
 
 func focusedWindow() -> AXUIElement? {
@@ -71,7 +70,7 @@ func screenFraction(of r: NSRect, on screen: NSScreen) -> NSRect {
 var snapped: [AXUIElement] = []
 func remember(_ win: AXUIElement) { if !snapped.contains(where: { CFEqual($0, win) }) { snapped.append(win) } }
 func forget(_ win: AXUIElement) { snapped.removeAll { CFEqual($0, win) } }
-func ghostFractions(on screen: NSScreen) -> [NSRect] {
+func ghostFrames() -> [NSRect] {   // snapped windows still at their snapped frame, in screen coordinates, the target excluded
     let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] ?? []
     var onScreen: [(pid: pid_t, bounds: CGRect)] = info.compactMap {
         guard let pid = $0[kCGWindowOwnerPID as String] as? pid_t, let b = $0[kCGWindowBounds as String],
@@ -102,15 +101,15 @@ func ghostFractions(on screen: NSScreen) -> [NSRect] {
         var f = CGRect.zero
         AXValueGetValue(p as! AXValue, .cgPoint, &f.origin); AXValueGetValue(s as! AXValue, .cgSize, &f.size)
         guard claim(pid, f), i >= target.count else { continue }
-        let u = screenFraction(of: NSRect(x: f.minX, y: top - f.maxY, width: f.width, height: f.height), on: screen)
-        if !u.isEmpty, !out.contains(u) { out.append(u) }
+        let r = NSRect(x: f.minX, y: top - f.maxY, width: f.width, height: f.height)
+        if !out.contains(r) { out.append(r) }
     }
     return out
 }
 
 var lastSnap: (win: AXUIElement, pos: CGPoint, size: CGSize)?
 func undoSnap() {
-    view.cancel()
+    cancelGrid()
     guard let s = lastSnap else { return }
     lastSnap = axFrame(s.win).map { (s.win, $0.0, $0.1) }   // pressing again redoes
     axSet(s.win, s.pos, s.size)

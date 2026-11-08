@@ -9,7 +9,7 @@ An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Pres
 - Undo the last snap
 - Configurable grid size and gap between windows
 - Snap the focused window or the one under the cursor
-- Works across multiple displays
+- A grid on every display: snap to any display's grid to move the window there
 - Menu bar app, launch at login, no Dock icon
 - No network access, no analytics, no accounts
 
@@ -48,6 +48,7 @@ open /Applications/GridSnap.app
 | Snap | Click or drag cells and release, or press Return |
 | Move the selection | Arrow keys |
 | Grow or shrink it | Shift+→ / Shift+↑ grow, Shift+← / Shift+↓ shrink |
+| Use another display's grid | Click it, or press Tab |
 | Cancel | Esc, or drag outside the panel and release |
 | Dismiss | Click anywhere outside the grid |
 | Save a preset | Hold Shift when releasing or pressing Return, or use **+** in Settings |
@@ -56,7 +57,7 @@ open /Applications/GridSnap.app
 
 The grid opens with the window's current cells outlined, so Return alone aligns it to the grid.
 
-The grid appears on the display under the cursor and the window snaps to that display, so moving the mouse to another monitor before pressing the shortcut moves the window there. Presets snap to the display the window is already on.
+With more than one display, a grid appears on each of them. Select cells on any display's grid and the window snaps to that display, so a drag on the other monitor's grid moves the window there. The keyboard starts on the grid for the display the window is on; Tab moves it to the next display. Presets snap to the display the window is already on.
 
 Wider gutters in the grid mark halves, thirds and quarters.
 

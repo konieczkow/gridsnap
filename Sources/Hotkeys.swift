@@ -24,7 +24,7 @@ func installHotKeyHandler() {
         let i = Int(id.id) - 100
         if i >= 0 { if i < presets.count { applyPreset(presets[i]) } }
         else if id.id == 2 { undoSnap() }
-        else if view.active { view.cancel() } else { showGrid() }
+        else if gridActive { cancelGrid() } else { showGrid() }
         return noErr
     }, 1, &spec, nil, nil)
     registerAll()
