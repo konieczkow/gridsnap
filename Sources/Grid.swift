@@ -107,10 +107,10 @@ final class GridView: NSView {
         if p.y < grid.minY - 4 { pressed = entry(e); needsDisplay = true; return }
         dragging = self; claim(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
     }
-    func track(_ e: NSEvent) {   // cursor outside the panel or on the header = no selection, so releasing there cancels
+    func track(_ e: NSEvent) {   // the drag clamps to the edge cell outside the panel and on the header, like Divvy; Esc is the way out
         guard gridActive else { return }
-        let new = cellArea.contains(convert(e.locationInWindow, from: nil)) ? cell(e) : nil
-        guard new?.0 != end?.0 || new?.1 != end?.1 else { return }   // only hit AX when the cell changes
+        let new = cell(e)
+        guard new.0 != end?.0 || new.1 != end?.1 else { return }   // only hit AX when the cell changes
         end = new; needsDisplay = true; preview()
     }
     override func mouseDragged(with e: NSEvent) { if dragging === self { track(e) } }
