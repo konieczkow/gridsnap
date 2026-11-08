@@ -1,6 +1,7 @@
 import Cocoa
 
 var targetWindow: AXUIElement?
+var targetApp: NSRunningApplication?   // the app behind targetWindow; its icon and name head every panel, like Divvy
 var recordMode = false   // grid open only to pick a region for a new preset; nothing moves
 
 func focusedWindow() -> AXUIElement? {
@@ -24,6 +25,7 @@ func windowUnderCursor() -> AXUIElement? {
 }
 
 func pickTarget() -> AXUIElement? { (defaults.bool(forKey: "underCursor") ? windowUnderCursor() : nil) ?? focusedWindow() }
+func appOf(_ win: AXUIElement) -> NSRunningApplication? { var pid: pid_t = 0; AXUIElementGetPid(win, &pid); return NSRunningApplication(processIdentifier: pid) }
 func screenUnderCursor() -> NSScreen { NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? .main! }
 
 func axSet(_ win: AXUIElement, _ pos: CGPoint, _ size: CGSize? = nil) {
