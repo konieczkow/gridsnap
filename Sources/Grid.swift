@@ -8,10 +8,10 @@ func cellRange(_ lo: CGFloat, _ hi: CGFloat, _ n: Int) -> ClosedRange<Int> {
 
 // One grid panel per display while the grid is open, index matching NSScreen.screens. Only one panel holds a
 // selection at a time; the window snaps to that panel's display, so a drag on another display moves it there.
-var grids: [GridView] = []
+var grids: [GridView] = [], spare: [GridView] = []
 var gridActive = false
 var original: (CGPoint, CGSize)?   // target window frame when the grid opened, restored on cancel
-var moved = false
+var moved = false, dragging: GridView?
 var selected: GridView? { grids.first { $0.selection != nil } }
 
 func preview() {   // live: the window follows the selection and snaps back when there is none
@@ -64,7 +64,7 @@ final class GridView: NSView {
 
     override func mouseDown(with e: NSEvent) {
         guard gridActive else { return }
-        claim(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
+        dragging = self; claim(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
     }
     func track(_ e: NSEvent) {   // cursor outside the panel = no selection, so releasing there cancels
         guard gridActive else { return }
@@ -73,7 +73,7 @@ final class GridView: NSView {
         end = new; needsDisplay = true; preview()
     }
     override func mouseDragged(with e: NSEvent) { track(e) }
-    override func mouseUp(with e: NSEvent) { track(e); commitGrid(save: e.modifierFlags.contains(.shift)) }
+    override func mouseUp(with e: NSEvent) { dragging = nil; track(e); commitGrid(save: e.modifierFlags.contains(.shift)) }
     override func keyDown(with e: NSEvent) {
         guard gridActive else { return }
         if e.keyCode == 53 { cancelGrid(); return }   // esc, also mid-drag
@@ -89,9 +89,10 @@ final class GridView: NSView {
         default: break
         }
     }
-    func focus(_ by: Int) {   // tab moves the keyboard to the next display's grid
-        guard let i = grids.firstIndex(where: { $0 === self }) else { return }
+    func focus(_ by: Int) {   // tab moves the selection and the keyboard to the next display's grid; not mid-drag
+        guard dragging == nil, let i = grids.firstIndex(where: { $0 === self }) else { return }
         let g = grids[(i + by + grids.count) % grids.count]
+        if g !== self, let src = selected, src !== g { g.start = src.start; g.end = src.end; g.claim(); g.needsDisplay = true; preview() }
         g.panel.makeKey(); g.panel.makeFirstResponder(g)
     }
     func step(_ dx: Int, _ dy: Int, resize: Bool) {
@@ -144,14 +145,21 @@ final class GridView: NSView {
             NSColor.controlAccentColor.withAlphaComponent(pending ? 0.3 : 0.85).setFill(); p.fill()
             (pending ? NSColor.controlAccentColor : NSColor.white.withAlphaComponent(0.7)).setStroke(); p.lineWidth = pending ? 2 : 1.5; p.stroke()
         }
+        if grids.count > 1, window?.isKeyWindow == true {
+            let p = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 17, yRadius: 17)
+            NSColor.white.withAlphaComponent(0.8).setStroke(); p.lineWidth = 2; p.stroke()
+        }
     }
 }
 
 final class Panel: NSPanel {
     override var canBecomeKey: Bool { true }
+    var grid: GridView? { grids.first { $0.panel === self } }
+    override func becomeKey() { super.becomeKey(); grid?.needsDisplay = true }
     override func resignKey() {   // the keyboard moving to another grid panel (Tab, a click on it) keeps the grid; anywhere else dismisses
         super.resignKey()
-        DispatchQueue.main.async { if !(NSApp.keyWindow is Panel) { cancelGrid() } }
+        grid?.needsDisplay = true
+        DispatchQueue.main.async { if !grids.contains(where: { $0.panel.isKeyWindow }) { cancelGrid() } }
     }
 }
 
@@ -180,18 +188,19 @@ func showGrid() {
     targetWindow = recordMode ? nil : pickTarget()   // before the panels appear; record mode moves nothing
     original = targetWindow.flatMap(axFrame)
     if original == nil { targetWindow = nil }
-    moved = false
-    let screens = NSScreen.screens, ghosts = ghostFrames()
-    while grids.count < screens.count { grids.append(GridView()) }
-    while grids.count > screens.count { grids.removeLast().panel.orderOut(nil) }
-    let home = targetWindow.map(screenOf) ?? screenUnderCursor()   // this display's grid outlines the window and takes the keyboard
+    moved = false; dragging = nil
+    let screens = NSScreen.screens, ghosts = ghostFrames(), top = NSScreen.screens[0].frame.maxY
+    while grids.count < screens.count { grids.append(spare.popLast() ?? GridView()) }
+    while grids.count > screens.count { let g = grids.removeLast(); g.clear(); g.panel.orderOut(nil); spare.append(g) }
+    let frame = original.map { NSRect(x: $0.0.x, y: top - $0.0.y - $0.1.height, width: $0.1.width, height: $0.1.height) }
+    let home = frame.flatMap { r in screens.first { NSMouseInRect(NSPoint(x: r.midX, y: r.midY), $0.frame, false) } }   // this display's grid outlines the window and takes the keyboard
+    let keyFrame = (home ?? screenUnderCursor()).frame
     var key = grids[0]
     for (g, s) in zip(grids, screens) {
         g.screen = s; g.clear()
         g.ghosts = ghosts.map { screenFraction(of: $0, on: s) }.filter { !$0.isEmpty }
-        if s.frame == home.frame { key = g }
-        if let o = original, s.frame == home.frame {
-            let r = NSRect(x: o.0.x, y: NSScreen.screens[0].frame.maxY - o.0.y - o.1.height, width: o.1.width, height: o.1.height)
+        if s.frame == keyFrame { key = g }
+        if let r = frame, s.frame == home?.frame {
             let u = screenFraction(of: r, on: s)
             if !u.isEmpty {
                 let x = cellRange(u.minX, u.maxX, cols), y = cellRange(u.minY, u.maxY, rows)
