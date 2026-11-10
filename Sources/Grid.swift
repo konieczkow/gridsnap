@@ -1,4 +1,5 @@
 import Cocoa
+import Carbon
 
 func cellRange(_ lo: CGFloat, _ hi: CGFloat, _ n: Int) -> ClosedRange<Int> {
     let a = Int((lo * CGFloat(n)).rounded()), b = Int((hi * CGFloat(n)).rounded()) - 1
@@ -13,6 +14,9 @@ var gridActive = false
 var original: (CGPoint, CGSize)?   // target window frame when the grid opened, restored on cancel
 var moved = false, dragging: GridView?
 var selected: GridView? { grids.first { $0.selection != nil } }
+let presetKeys = [[kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4, kVK_ANSI_5, kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8, kVK_ANSI_9],
+                  [kVK_ANSI_Keypad1, kVK_ANSI_Keypad2, kVK_ANSI_Keypad3, kVK_ANSI_Keypad4, kVK_ANSI_Keypad5,
+                   kVK_ANSI_Keypad6, kVK_ANSI_Keypad7, kVK_ANSI_Keypad8, kVK_ANSI_Keypad9]]
 
 func preview() {   // live: the window follows the selection and snaps back when there is none
     guard let win = targetWindow else { return }
@@ -26,6 +30,15 @@ func commitGrid(save: Bool) {
     let f = (save || recordMode) ? selected?.selectionFraction : nil   // shift saves a preset
     hideGrid()
     if let f { newPreset(f) }
+}
+func commitGrid(preset p: Preset, on screen: NSScreen) {
+    guard gridActive, !recordMode else { return }
+    gridActive = false
+    if let w = targetWindow {
+        applyFrame(w, screenFrame(fraction: p.rect, on: screen)); remember(w)
+        if let o = original { lastSnap = (w, o.0, o.1) }
+    }
+    hideGrid()
 }
 func cancelGrid() {
     guard gridActive else { return }
@@ -41,7 +54,14 @@ final class GridView: NSView {
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for e: NSEvent?) -> Bool { true }
 
-    var grid: NSRect { bounds.insetBy(dx: 10, dy: 10) }
+    var list: [Preset] = [], pressed: Int?
+    var listHeight: CGFloat { list.isEmpty ? 0 : CGFloat((list.count + 2) / 3) * 20 + 8 }
+    var grid: NSRect { NSRect(x: 10, y: 10 + listHeight, width: bounds.width - 20, height: bounds.height - 20 - listHeight) }
+    func entryRect(_ i: Int) -> NSRect {
+        let w = grid.width / 3
+        return NSRect(x: grid.minX + CGFloat(i % 3) * w, y: 10 + CGFloat((list.count - 1) / 3 - i / 3) * 20, width: w, height: 20)
+    }
+    func entry(_ e: NSEvent) -> Int? { list.indices.first { entryRect($0).contains(convert(e.locationInWindow, from: nil)) } }
     func cell(_ e: NSEvent) -> (Int, Int) {
         let p = convert(e.locationInWindow, from: nil)
         return (min(max(Int((p.x - grid.minX) / grid.width * CGFloat(cols)), 0), cols - 1),
@@ -59,11 +79,12 @@ final class GridView: NSView {
     var selectionFrame: NSRect? { selectionFraction.map { screenFrame(fraction: $0, on: screen) } }
 
     var ghosts: [NSRect] = []
-    func clear() { start = nil; end = nil; pending = false; needsDisplay = true }
+    func clear() { start = nil; end = nil; pending = false; pressed = nil; needsDisplay = true }
     func claim() { for g in grids where g !== self { g.clear() } }   // a selection here drops any on another display
 
     override func mouseDown(with e: NSEvent) {
         guard gridActive else { return }
+        if convert(e.locationInWindow, from: nil).y < grid.minY - 4 { pressed = entry(e); needsDisplay = true; return }
         dragging = self; claim(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
     }
     func track(_ e: NSEvent) {   // cursor outside the panel = no selection, so releasing there cancels
@@ -72,12 +93,22 @@ final class GridView: NSView {
         guard new?.0 != end?.0 || new?.1 != end?.1 else { return }   // only hit AX when the cell changes
         end = new; needsDisplay = true; preview()
     }
-    override func mouseDragged(with e: NSEvent) { track(e) }
-    override func mouseUp(with e: NSEvent) { dragging = nil; track(e); commitGrid(save: e.modifierFlags.contains(.shift)) }
+    override func mouseDragged(with e: NSEvent) { if dragging === self { track(e) } }
+    override func mouseUp(with e: NSEvent) {
+        if let i = pressed, entry(e) == i { commitGrid(preset: list[i], on: screen) }
+        pressed = nil; needsDisplay = true
+        guard dragging === self else { return }
+        dragging = nil; track(e); commitGrid(save: e.modifierFlags.contains(.shift))
+    }
     override func keyDown(with e: NSEvent) {
         guard gridActive else { return }
         if e.keyCode == 53 { cancelGrid(); return }   // esc, also mid-drag
         let shift = e.modifierFlags.contains(.shift)
+        if e.modifierFlags.intersection([.command, .control, .option]).isEmpty,
+           let i = presetKeys.lazy.compactMap({ $0.firstIndex(of: Int(e.keyCode)) }).first {
+            if i < presets.count { commitGrid(preset: presets[i], on: screen) }
+            return
+        }
         switch e.specialKey {
         case .carriageReturn?, .enter?: commitGrid(save: shift)
         case .tab?: focus(1)
@@ -145,6 +176,16 @@ final class GridView: NSView {
             NSColor.controlAccentColor.withAlphaComponent(pending ? 0.3 : 0.85).setFill(); p.fill()
             (pending ? NSColor.controlAccentColor : NSColor.white.withAlphaComponent(0.7)).setStroke(); p.lineWidth = pending ? 2 : 1.5; p.stroke()
         }
+        let style = NSMutableParagraphStyle(); style.lineBreakMode = .byTruncatingTail
+        for (i, p) in list.enumerated() {
+            let r = entryRect(i), cap = NSRect(x: r.minX + 2, y: r.midY - 8, width: 16, height: 16)
+            if pressed == i { NSColor.white.withAlphaComponent(0.15).setFill(); NSBezierPath(roundedRect: r, xRadius: 5, yRadius: 5).fill() }
+            NSColor.white.withAlphaComponent(0.18).setFill(); NSBezierPath(roundedRect: cap, xRadius: 4, yRadius: 4).fill()
+            let n = NSAttributedString(string: "\(i + 1)", attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .semibold), .foregroundColor: NSColor.white])
+            n.draw(at: NSPoint(x: cap.midX - n.size().width / 2, y: cap.midY - n.size().height / 2))
+            (p.name as NSString).draw(in: NSRect(x: cap.maxX + 6, y: r.minY + 2, width: r.maxX - cap.maxX - 12, height: 15),
+                                      withAttributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.white.withAlphaComponent(0.85), .paragraphStyle: style])
+        }
         if grids.count > 1, window?.isKeyWindow == true {
             let p = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 17, yRadius: 17)
             NSColor.white.withAlphaComponent(0.8).setStroke(); p.lineWidth = 2; p.stroke()
@@ -190,6 +231,7 @@ func showGrid() {
     if original == nil { targetWindow = nil }
     moved = false; dragging = nil
     let screens = NSScreen.screens, ghosts = ghostFrames(), top = NSScreen.screens[0].frame.maxY
+    let list = recordMode ? [] : Array(presets.prefix(9))
     while grids.count < screens.count { grids.append(spare.popLast() ?? GridView()) }
     while grids.count > screens.count { let g = grids.removeLast(); g.clear(); g.panel.orderOut(nil); spare.append(g) }
     let frame = original.map { NSRect(x: $0.0.x, y: top - $0.0.y - $0.1.height, width: $0.1.width, height: $0.1.height) }
@@ -197,7 +239,7 @@ func showGrid() {
     let keyFrame = (home ?? screenUnderCursor()).frame
     var key = grids[0]
     for (g, s) in zip(grids, screens) {
-        g.screen = s; g.clear()
+        g.screen = s; g.list = list; g.clear()
         g.ghosts = ghosts.map { screenFraction(of: $0, on: s) }.filter { !$0.isEmpty }
         if s.frame == keyFrame { key = g }
         if let r = frame, s.frame == home?.frame {
@@ -207,7 +249,7 @@ func showGrid() {
                 g.start = (x.lowerBound, y.lowerBound); g.end = (x.upperBound, y.upperBound); g.pending = true
             }
         }
-        let f = s.visibleFrame, w: CGFloat = 480, h = w * f.height / f.width
+        let f = s.visibleFrame, w: CGFloat = 480, h = w * f.height / f.width + g.listHeight
         g.panel.setFrame(NSRect(x: f.midX - w / 2, y: f.midY - h / 2, width: w, height: h), display: true)
         g.frame = g.panel.contentView!.bounds
         g.panel.alphaValue = 0

@@ -33,18 +33,28 @@ final class PresetTable: NSObject, NSTableViewDataSource, NSTableViewDelegate {
             let f = NSTextField(string: p.name)
             f.isBordered = false; f.drawsBackground = false; f.cell?.sendsActionOnEndEditing = true
             f.target = self; f.action = #selector(rename); return f
+        case "n":
+            let f = NSTextField(labelWithString: row < 9 ? "\(row + 1)" : "")
+            f.alignment = .center; f.textColor = .secondaryLabelColor; return f
         case "key":
-            let b = ShortcutButton.make((p.keyCode, p.keyMods, p.keyLabel))
+            let b = ShortcutButton.make(p.combo, clearable: true)
             b.controlSize = .small; b.font = .systemFont(ofSize: NSFont.smallSystemFontSize); b.bezelStyle = .inline
             b.onChange = { [unowned b] in
-                guard let c = b.combo else { return }
-                if let why = conflict(c.code, c.mods, excluding: row) { alert(why); b.combo = (p.keyCode, p.keyMods, p.keyLabel); return }
-                presets[row].keyCode = c.code; presets[row].keyMods = c.mods; presets[row].keyLabel = c.label
+                if let c = b.combo, let why = conflict(c.code, c.mods, excluding: row) { alert(why); b.combo = p.combo; return }
+                presets[row].combo = b.combo
             }
             return b
         default:   // region: size and top-left as percentages of the screen
             return NSTextField(labelWithString: String(format: "%.0f×%.0f%% at %.0f,%.0f", p.w * 100, p.h * 100, p.x * 100, (1 - p.y - p.h) * 100))
         }
+    }
+    func tableView(_ t: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? { String(row) as NSString }
+    func tableView(_ t: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int, proposedDropOperation op: NSTableView.DropOperation) -> NSDragOperation {
+        info.draggingSource as? NSTableView === t && op == .above ? .move : []
+    }
+    func tableView(_ t: NSTableView, acceptDrop info: NSDraggingInfo, row: Int, dropOperation op: NSTableView.DropOperation) -> Bool {
+        guard let from = info.draggingPasteboard.string(forType: .string).flatMap({ Int($0) }) else { return false }
+        movePreset(from, to: row); return true
     }
     @objc func rename(_ f: NSTextField) {
         let row = presetTable.row(for: f)
@@ -55,9 +65,11 @@ final class PresetTable: NSObject, NSTableViewDataSource, NSTableViewDelegate {
 let tableSource = PresetTable()
 let presetTable: NSTableView = {
     let t = NSTableView()
-    for (id, title, w) in [("name", "Name", 150), ("region", "Region", 140), ("key", "Shortcut", 110)] as [(String, String, CGFloat)] {
+    for (id, title, w) in [("n", "#", 16), ("name", "Name", 122), ("region", "Region", 125), ("key", "Shortcut", 92)] as [(String, String, CGFloat)] {
         let c = NSTableColumn(identifier: .init(id)); c.title = title; c.width = w; t.addTableColumn(c)
+        if id == "n" { c.minWidth = w; c.maxWidth = w; c.headerToolTip = "Press this number on the grid to apply the preset. Drag rows to reorder." }
     }
+    t.registerForDraggedTypes([.string])
     t.dataSource = tableSource; t.delegate = tableSource; t.rowHeight = 26
     t.columnAutoresizingStyle = .uniformColumnAutoresizingStyle; t.usesAlternatingRowBackgroundColors = true
     return t

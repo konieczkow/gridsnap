@@ -57,7 +57,7 @@ open /Applications/GridSnap.app
 
 The grid opens with the window's current cells outlined, so Return alone aligns it to the grid.
 
-With more than one display, a grid appears on each of them. Select cells on any display's grid and the window snaps to that display, so a drag on the other monitor's grid moves the window there. The keyboard starts on the grid for the display the window is on; Tab moves the selection, and the window with it, to the next display. Presets snap to the display the window is already on.
+With more than one display, a grid appears on each of them. Select cells on any display's grid and the window snaps to that display, so a drag on the other monitor's grid moves the window there. The keyboard starts on the grid for the display the window is on; Tab moves the selection, and the window with it, to the next display. A preset's shortcut snaps to the display the window is already on.
 
 Wider gutters in the grid mark halves, thirds and quarters.
 

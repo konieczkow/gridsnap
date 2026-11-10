@@ -14,7 +14,7 @@ func registerAll() {
     }
     reg(mainCombo.code, mainCombo.mods, 1)
     reg(undoCombo.code, undoCombo.mods, 2)
-    for (i, p) in presets.enumerated() { reg(p.keyCode, p.keyMods, UInt32(100 + i)) }
+    for (i, p) in presets.enumerated() { if let c = p.combo { reg(c.code, c.mods, UInt32(100 + i)) } }
 }
 func installHotKeyHandler() {
     var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))

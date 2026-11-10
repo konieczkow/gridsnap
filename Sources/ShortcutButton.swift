@@ -5,6 +5,7 @@ import Carbon
 final class ShortcutButton: NSButton {
     var combo: (code: Int, mods: Int, label: String)? { didSet { refresh() } }
     var onChange: (() -> Void)?
+    var clearable = false
     private var monitor: Any?
     static let keyNames: [Int: String] = {
         var n = [kVK_LeftArrow: "←", kVK_RightArrow: "→", kVK_UpArrow: "↑", kVK_DownArrow: "↓", kVK_Space: "Space", kVK_Return: "↩",
@@ -20,11 +21,12 @@ final class ShortcutButton: NSButton {
     static func display(_ c: (code: Int, mods: Int, label: String)) -> String {
         keyNames[c.code].map { symbols(c.mods) + $0 } ?? c.label
     }
-    func refresh() { title = combo.map(Self.display) ?? "Click to set" }
+    func refresh() { title = combo.map(Self.display) ?? (clearable ? "No shortcut" : "Click to set") }
 
-    static func make(_ combo: (code: Int, mods: Int, label: String)?, onChange: @escaping () -> Void = {}) -> ShortcutButton {
+    static func make(_ combo: (code: Int, mods: Int, label: String)?, clearable: Bool = false, onChange: @escaping () -> Void = {}) -> ShortcutButton {
         let b = ShortcutButton(title: "", target: nil, action: nil)
-        b.target = b; b.action = #selector(startRecording); b.combo = combo; b.onChange = onChange
+        b.target = b; b.action = #selector(startRecording); b.clearable = clearable; b.combo = combo; b.onChange = onChange
+        if clearable { b.toolTip = "Click, then type a shortcut. ⌫ removes it." }
         return b
     }
     static func combo(from e: NSEvent) -> (code: Int, mods: Int, label: String)? {
@@ -46,7 +48,9 @@ final class ShortcutButton: NSButton {
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in
             guard let self else { return e }
             if let m = self.monitor { NSEvent.removeMonitor(m); self.monitor = nil }
-            if let c = Self.combo(from: e) { self.combo = c; self.onChange?() } else { self.refresh() }
+            if let c = Self.combo(from: e) { self.combo = c; self.onChange?() }
+            else if self.clearable, Int(e.keyCode) == kVK_Delete { self.combo = nil; self.onChange?() }
+            else { self.refresh() }
             registerAll()
             return nil
         }
