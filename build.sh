@@ -8,7 +8,7 @@
 # Notary credentials come from the keychain profile NOTARY_PROFILE (default gridsnap-notary).
 cd "$(dirname "$0")"
 APP=build/GridSnap.app
-VERSION=0.1.9
+VERSION=0.1.10
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 for ARCH in arm64 x86_64; do swiftc -O -target "$ARCH-apple-macos14.0" Sources/*.swift -o "build/GridSnap-$ARCH"; done
