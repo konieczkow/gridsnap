@@ -10,12 +10,14 @@ An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Pres
 - Configurable grid size and gap between windows
 - Snap the focused window or the one under the cursor
 - A grid on every display: snap to any display's grid to move the window there
+- The app the window belongs to, icon and name, above every grid
+- Divvy's look: a translucent dark panel with flat outlined cells; the display under the cursor is bright and the others dim
 - Menu bar app, launch at login, no Dock icon
 - No network access, no analytics, no accounts
 
 ## Requirements
 
-- macOS 14 or later. Tested on macOS 26; on older versions the grid gets a frosted panel instead of the glass material.
+- macOS 14 or later. Tested on macOS 26.
 - Apple Silicon or Intel.
 - To build: Xcode Command Line Tools with the macOS 26 SDK. No Xcode project, `swiftc` compiles the files directly.
 
@@ -49,7 +51,7 @@ open /Applications/GridSnap.app
 | Move the selection | Arrow keys |
 | Grow or shrink it | Shift+→ / Shift+↑ grow, Shift+← / Shift+↓ shrink |
 | Use another display's grid | Click it, or press Tab |
-| Cancel | Esc, or drag outside the panel and release |
+| Cancel | Esc |
 | Dismiss | Click anywhere outside the grid |
 | Save a preset | Hold Shift when releasing or pressing Return, or use **+** in Settings |
 | Apply a preset | Its shortcut, or the Presets menu |
