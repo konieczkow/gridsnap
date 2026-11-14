@@ -1,7 +1,7 @@
 import Cocoa
 
-var targetWindow: AXUIElement?
-var targetApp: NSRunningApplication?   // the app behind targetWindow; its icon and name head every panel, like Divvy
+var targetWindow: AXUIElement? { didSet { targetApp = targetWindow.flatMap(appOf) } }
+private(set) var targetApp: NSRunningApplication?   // the app behind targetWindow; its icon and name head every panel
 var recordMode = false   // grid open only to pick a region for a new preset; nothing moves
 
 func focusedWindow() -> AXUIElement? {
