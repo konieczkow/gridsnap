@@ -25,7 +25,8 @@ func windowUnderCursor() -> AXUIElement? {
 }
 
 func pickTarget() -> AXUIElement? { (defaults.bool(forKey: "underCursor") ? windowUnderCursor() : nil) ?? focusedWindow() }
-func appOf(_ win: AXUIElement) -> NSRunningApplication? { var pid: pid_t = 0; AXUIElementGetPid(win, &pid); return NSRunningApplication(processIdentifier: pid) }
+func pidOf(_ win: AXUIElement) -> pid_t { var pid: pid_t = 0; AXUIElementGetPid(win, &pid); return pid }
+func appOf(_ win: AXUIElement) -> NSRunningApplication? { NSRunningApplication(processIdentifier: pidOf(win)) }
 func screenUnderCursor() -> NSScreen { NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? .main! }
 
 func axSet(_ win: AXUIElement, _ pos: CGPoint, _ size: CGSize? = nil) {
@@ -88,8 +89,7 @@ func ghostFrames() -> [NSRect] {   // snapped windows still at their snapped fra
     let top = NSScreen.screens[0].frame.maxY, target = targetWindow.map { [$0] } ?? []
     var out: [NSRect] = [], stuck: Set<pid_t> = []
     for (i, win) in (target + snapped.filter { w in !target.contains { CFEqual($0, w) } }).enumerated() {
-        var pid: pid_t = 0
-        AXUIElementGetPid(win, &pid)
+        let pid = pidOf(win)
         guard let app = NSRunningApplication(processIdentifier: pid) else { forget(win); continue }
         if app.isHidden || stuck.contains(pid) { continue }
         AXUIElementSetMessagingTimeout(win, 0.2)
