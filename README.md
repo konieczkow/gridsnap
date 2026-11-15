@@ -1,89 +1,53 @@
 # GridSnap
 
-An open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. Press a shortcut, a grid appears, drag across the cells you want, and the window snaps there. Save a region as a preset and it becomes a one-keystroke snap.
+GridSnap is an open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. You press a shortcut, a grid appears, and you drag across the cells you want. The window then snaps to that area. You can save an area as a preset and apply it later with one keystroke.
 
 ![Pressing the shortcut, dragging on the grid, and the window following](docs/demo.gif)
 
-- Grid overlay with live preview: the window follows your drag and jumps back if you cancel
-- Presets with their own global shortcuts; a Full screen preset on ⌃⌥F comes built in
-- Undo the last snap
-- Configurable grid size and gap between windows
-- Snap the focused window or the one under the cursor
-- A grid on every display: snap to any display's grid to move the window there
-- The app the window belongs to, icon and name, above every grid
-- Menu bar app, launch at login, no Dock icon
-- No network access, no analytics, no accounts
+## Features
 
-## Requirements
-
-- macOS 14 or later. Tested on macOS 26; on older versions the grid gets a frosted panel instead of the glass material.
-- Apple Silicon or Intel.
-- To build: Xcode Command Line Tools with the macOS 26 SDK. No Xcode project, `swiftc` compiles the files directly.
+- The window follows your drag, so you see the result before you release. If you cancel, the window returns to where it was.
+- You can save an area as a preset and give it a global shortcut. A Full screen preset on ⌃⌥F is built in.
+- You can undo the last snap.
+- Every display gets its own grid, so you can move a window to another display by selecting cells there.
+- You choose the grid size, the gap between windows, and whether GridSnap moves the focused window or the one under the cursor.
+- The grid shows the icon and name of the app that the window belongs to. You can turn this off in Settings.
+- GridSnap lives in the menu bar, has no Dock icon, and can start when you log in.
+- GridSnap does not use the network, collect analytics, or need an account.
 
 ## Install
 
-With Homebrew:
+GridSnap needs macOS 14 or later and runs on Apple Silicon and Intel Macs. It is tested on macOS 26, where the grid uses the glass material. On older versions the grid is frosted instead.
+
+Install it with Homebrew:
 
 ```sh
 brew install --cask konieczkow/tap/gridsnap
 ```
 
-Or download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/konieczkow/gridsnap/releases/latest), unzip it and drag GridSnap to Applications.
+You can also download `GridSnap-x.y.z.zip` from the [latest release](https://github.com/konieczkow/gridsnap/releases/latest), unzip it, and drag GridSnap to your Applications folder.
 
-On first launch GridSnap asks for **Accessibility**, which it needs to move other apps' windows. Turn it on under System Settings › Privacy & Security › Accessibility (the menu bar icon has a **Grant Accessibility…** item that opens that pane). GridSnap picks the grant up on its own, no relaunch needed.
-
-Or build it yourself:
-
-```sh
-git clone https://github.com/konieczkow/gridsnap.git
-cd gridsnap
-./build.sh install
-open /Applications/GridSnap.app
-```
+When you first open GridSnap, it asks for the **Accessibility** permission, which it needs to move the windows of other apps. Turn the permission on in System Settings › Privacy & Security › Accessibility. The **Grant Accessibility…** item in the GridSnap menu opens that pane for you. GridSnap notices the permission by itself, so you do not need to restart it.
 
 ## Use
 
-| Action | How |
-|---|---|
-| Show the grid | ⌃⌥D (change it in Settings) |
-| Snap | Click or drag cells and release, or press Return |
-| Move the selection | Arrow keys |
-| Grow or shrink it | Shift+→ / Shift+↑ grow, Shift+← / Shift+↓ shrink |
-| Use another display's grid | Click it, or press Tab |
-| Cancel | Esc, or drag outside the panel and release |
-| Dismiss | Click anywhere outside the grid |
-| Save a preset | Hold Shift when releasing or pressing Return, or use **+** in Settings |
-| Apply a preset | Its shortcut, or the Presets menu. With the grid open, keys 1 to 9, or a click in the list under the cells if it is shown |
-| Undo last snap | ⌃⌥Z by default, press again to redo |
+1. Bring the window you want to move to the front, then press ⌃⌥D (Control-Option-D). A grid panel appears on every display.
+2. Drag across the cells you want. The window follows your drag.
+3. Release to snap the window. To cancel, press Esc or release outside the panel.
 
-The grid opens with the window's current cells outlined, so Return alone aligns it to the grid.
+To undo the last snap, press ⌃⌥Z.
 
-While you drag, the whole panel counts: on the margins or the app header the nearest edge cell stays selected. Outside the panel the window jumps back, and releasing there cancels.
+[Using GridSnap](docs/usage.md) explains the rest: keyboard control, presets, more than one display, and Settings.
 
-With more than one display, a grid appears on each of them. Select cells on any display's grid and the window snaps to that display, so a drag on the other monitor's grid moves the window there. The keyboard starts on the grid for the display the window is on; Tab moves the selection, and the window with it, to the next display. A preset's shortcut snaps to the display the window is already on.
+## Build from source
 
-Wider gutters in the grid mark halves, thirds and quarters.
-
-**Settings** (menu bar icon › Settings…) holds both shortcuts, columns and rows, the gap in points between snapped windows, whether the grid shows the app's icon and name and the preset list, the target rule, and the presets table. Names and shortcuts are editable in place; **−** removes the selected preset.
-
-## Development
-
-```sh
-./build.sh            # builds build/GridSnap.app
-./build.sh install    # also copies it to /Applications
-```
-
-`Resources/icon.png` is the icon source; regenerate `AppIcon.icns` from it with `iconutil` if you change it.
-
-Files in `Sources/`: `main.swift` startup, `AX.swift` window plumbing, `Grid.swift` overlay, `Presets.swift`, `Hotkeys.swift`, `ShortcutButton.swift` recorder, `SettingsWindow.swift`, `Menu.swift`, `Defaults.swift` stored settings.
-
-macOS ties the Accessibility grant to the app's code signature. The default ad-hoc signature changes with every build, so you'd re-grant permission after each rebuild. To avoid that, create a self-signed certificate once (Keychain Access › Certificate Assistant › Create a Certificate, type "Code Signing", name it `GridSnap Dev`) and the build script picks it up. Any other identity works via `CODESIGN_IDENTITY="name" ./build.sh`.
+[Building GridSnap](docs/development.md) explains how to build the app and where to find things in the code.
 
 ## Known limitations
 
-- Full-screen windows ignore snapping.
-- Some apps enforce a minimum window size and won't shrink to a small cell. The window then stays on screen and overlaps the neighbouring cells.
+- GridSnap cannot snap a window that is in full-screen mode.
+- Some apps set a minimum window size and will not shrink to a small area. The window then stays on the screen and overlaps the neighbouring cells.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+GridSnap is released under the [MIT License](LICENSE).
