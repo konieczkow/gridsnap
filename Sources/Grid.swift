@@ -148,59 +148,65 @@ final class GridView: NSView {
     override func draw(_ dirty: NSRect) {
         guard !grid.isEmpty else { return }   // layer-backed views get drawn at zero size before the panel is shown
         let style = NSMutableParagraphStyle(); style.lineBreakMode = .byTruncatingTail
+        // every element is drawn from its Style in the theme (Themes.swift): a rounded box, filled then stroked, and a text colour
+        func box(_ r: NSRect, _ s: Style) -> NSBezierPath {
+            let radius = min(max(s.radius ?? 0, 0), r.width / 2, r.height / 2)
+            return NSBezierPath(roundedRect: r, xRadius: radius, yRadius: radius)
+        }
+        func paint(_ p: NSBezierPath, _ s: Style) {
+            if let f = s.fill { f.color.setFill(); p.fill() }
+            if let c = s.stroke, case let w = s.lineWidth ?? 1, w > 0 { c.color.setStroke(); p.lineWidth = w; p.stroke() }
+        }
+        func ink(_ s: Style) -> NSColor { s.text?.color ?? .labelColor }
+        func rim(_ s: Style) -> NSBezierPath {   // the panel's outline, moved in so that a stroke stays inside it
+            var s = s
+            let i = s.stroke == nil ? 0 : max(s.lineWidth ?? 1, 0) / 2
+            s.radius = (look.panel.radius ?? 0) - i
+            return box(bounds.insetBy(dx: i, dy: i), s)
+        }
+        paint(rim(look.panel), look.panel)
         if headerHeight > 0, let app = targetApp {   // header: the app the window belongs to, same on every display
             let icon = NSRect(x: grid.minX + 2, y: cellArea.maxY, width: headerHeight - 16, height: headerHeight - 16)
             app.icon?.draw(in: icon, from: .zero, operation: .sourceOver, fraction: 1)
             let name = NSAttributedString(string: app.localizedName ?? "", attributes: [
-                .font: NSFont.systemFont(ofSize: 20, weight: .medium), .foregroundColor: NSColor.white.withAlphaComponent(0.9), .paragraphStyle: style])
+                .font: NSFont.systemFont(ofSize: 20, weight: .medium), .foregroundColor: ink(look.header), .paragraphStyle: style])
             let s = name.size()
             name.draw(in: NSRect(x: icon.maxX + 12, y: icon.midY - s.height / 2, width: grid.maxX - icon.maxX - 12, height: s.height))
         }
-        let cw = grid.width / CGFloat(cols), ch = grid.height / CGFloat(rows)
+        let cw = grid.width / CGFloat(cols), ch = grid.height / CGFloat(rows), inset = max(look.spacing, 0) / 2
         // extra gap at boundary i of n: halves widest, thirds/quarters narrower, everything else uniform
         func gap(_ i: Int, _ n: Int) -> CGFloat {
             i == 0 || i == n ? 0 : (i * 2) % n == 0 ? 3 : (i * 3) % n == 0 || (i * 4) % n == 0 ? 1.5 : 0
         }
         func edge(_ c: CGFloat, _ n: Int, _ size: CGFloat, _ tol: CGFloat, _ sign: CGFloat) -> CGFloat {
             let i = c.rounded()
-            return abs(c - i) <= tol ? i * size + sign * (2 + gap(Int(i), n)) : c * size
+            return abs(c - i) <= tol ? i * size + sign * (inset + gap(Int(i), n)) : c * size
         }
-        func path(_ r: NSRect, tolX: CGFloat = 0, tolY: CGFloat = 0) -> NSBezierPath {
+        func cells(_ r: NSRect, _ s: Style, tolX: CGFloat = 0, tolY: CGFloat = 0) {   // r in cell units
             let x0 = grid.minX + edge(r.minX, cols, cw, tolX, 1), x1 = grid.minX + edge(r.maxX, cols, cw, tolX, -1)
             let y0 = grid.minY + edge(r.minY, rows, ch, tolY, 1), y1 = grid.minY + edge(r.maxY, rows, ch, tolY, -1)
-            return NSBezierPath(roundedRect: NSRect(x: x0, y: y0, width: max(x1 - x0, 0), height: max(y1 - y0, 0)), xRadius: 4, yRadius: 4)
+            paint(box(NSRect(x: x0, y: y0, width: max(x1 - x0, 0), height: max(y1 - y0, 0)), s), s)
         }
-        func rect(_ x: ClosedRange<Int>, _ y: ClosedRange<Int>) -> NSBezierPath {
-            path(NSRect(x: x.lowerBound, y: y.lowerBound, width: x.count, height: y.count))
-        }
-        for x in 0..<cols { for y in 0..<rows {
-            let p = rect(x...x, y...y)
-            NSColor.white.withAlphaComponent(0.10).setFill(); p.fill()
-            NSColor.white.withAlphaComponent(0.20).setStroke(); p.stroke()
-        }}
+        for x in 0..<cols { for y in 0..<rows { cells(NSRect(x: x, y: y, width: 1, height: 1), look.cell) } }
         let v = screen.visibleFrame, c = CGFloat(cols), r = CGFloat(rows)
         for u in ghosts {
-            let p = path(NSRect(x: u.minX * c, y: u.minY * r, width: u.width * c, height: u.height * r), tolX: 2 * c / v.width, tolY: 2 * r / v.height)
-            NSColor.white.withAlphaComponent(0.25).setFill(); p.fill()
-            NSColor.white.withAlphaComponent(0.45).setStroke(); p.stroke()
+            cells(NSRect(x: u.minX * c, y: u.minY * r, width: u.width * c, height: u.height * r), look.ghost, tolX: 2 * c / v.width, tolY: 2 * r / v.height)
         }
         if let s = selection {
-            let p = rect(s.x, s.y)
-            NSColor.controlAccentColor.withAlphaComponent(pending ? 0.3 : 0.85).setFill(); p.fill()
-            (pending ? NSColor.controlAccentColor : NSColor.white.withAlphaComponent(0.7)).setStroke(); p.lineWidth = pending ? 2 : 1.5; p.stroke()
+            cells(NSRect(x: s.x.lowerBound, y: s.y.lowerBound, width: s.x.count, height: s.y.count), pending ? look.pending : look.selection)
         }
         for (i, p) in list.enumerated() {
             let r = entryRect(i), cap = NSRect(x: r.minX + 2, y: r.midY - 8, width: 16, height: 16)
-            if pressed == i { NSColor.white.withAlphaComponent(0.15).setFill(); NSBezierPath(roundedRect: r, xRadius: 5, yRadius: 5).fill() }
-            NSColor.white.withAlphaComponent(0.18).setFill(); NSBezierPath(roundedRect: cap, xRadius: 4, yRadius: 4).fill()
-            let n = NSAttributedString(string: "\(i + 1)", attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .semibold), .foregroundColor: NSColor.white])
+            if pressed == i { paint(box(r, look.preset), look.preset) }
+            paint(box(cap, look.keycap), look.keycap)
+            let n = NSAttributedString(string: "\(i + 1)", attributes: [.font: NSFont.monospacedDigitSystemFont(ofSize: 10, weight: .semibold), .foregroundColor: ink(look.keycap)])
             n.draw(at: NSPoint(x: cap.midX - n.size().width / 2, y: cap.midY - n.size().height / 2))
             (p.name as NSString).draw(in: NSRect(x: cap.maxX + 6, y: r.minY + 2, width: r.maxX - cap.maxX - 12, height: 15),
-                                      withAttributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.white.withAlphaComponent(0.85), .paragraphStyle: style])
+                                      withAttributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: ink(look.preset), .paragraphStyle: style])
         }
         if grids.count > 1, window?.isKeyWindow == true {
-            let p = NSBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), xRadius: 17, yRadius: 17)
-            NSColor.white.withAlphaComponent(0.8).setStroke(); p.lineWidth = 2; p.stroke()
+            var ring = look.focusRing; ring.fill = nil
+            paint(rim(ring), ring)
         }
     }
 }
@@ -220,14 +226,13 @@ func makePanel(_ view: GridView) -> Panel {
     let panel = Panel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
     let glass: NSView
     if #available(macOS 26, *) {
-        let g = NSGlassEffectView(); g.cornerRadius = 18; g.contentView = view; glass = g
-        g.wantsLayer = true; g.layer?.cornerRadius = 18; g.layer?.masksToBounds = true  // clip the backdrop too
+        let g = NSGlassEffectView(); g.contentView = view; glass = g
+        g.wantsLayer = true; g.layer?.masksToBounds = true  // clip the backdrop too
     } else {
         let v = NSVisualEffectView(); v.material = .hudWindow; v.state = .active
-        v.wantsLayer = true; v.layer?.cornerRadius = 18; v.addSubview(view); glass = v
+        v.wantsLayer = true; v.addSubview(view); glass = v
     }
-    panel.contentView = glass
-    panel.appearance = NSAppearance(named: .darkAqua)
+    panel.contentView = glass   // showGrid gives it the theme's corner radius and light or dark appearance
     panel.hasShadow = false  // a shadow is computed on the square bounds and leaks through the corners
     panel.level = .floating
     panel.isOpaque = false
@@ -245,6 +250,9 @@ func showGrid() {
     let screens = NSScreen.screens, ghosts = ghostFrames(), top = NSScreen.screens[0].frame.maxY
     let list = recordMode || !defaults.bool(forKey: "showList") ? [] : Array(presets.prefix(9))   // hiding the list leaves keys 1 to 9 working
     let header: CGFloat = targetApp != nil && defaults.bool(forKey: "showHeader") ? 52 : 0
+    let dark = darkMode, theme = (try? loadTheme(themeID)) ?? (try! loadTheme("Default"))   // read on every open, so an edited theme file shows at once; a broken one falls back
+    look = dark ? theme.dark : theme.light
+    let radius = max(look.panel.radius ?? 0, 0)
     while grids.count < screens.count { grids.append(spare.popLast() ?? GridView()) }
     while grids.count > screens.count { let g = grids.removeLast(); g.clear(); g.panel.orderOut(nil); spare.append(g) }
     let frame = original.map { NSRect(x: $0.0.x, y: top - $0.0.y - $0.1.height, width: $0.1.width, height: $0.1.height) }
@@ -263,6 +271,9 @@ func showGrid() {
             }
         }
         let f = s.visibleFrame, w: CGFloat = 480, h = w * f.height / f.width + g.listHeight + g.headerHeight   // the grid keeps the display's aspect; the list and the header add to it
+        g.panel.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        g.panel.contentView?.layer?.cornerRadius = radius
+        if #available(macOS 26, *) { (g.panel.contentView as? NSGlassEffectView)?.cornerRadius = radius }
         g.panel.setFrame(NSRect(x: f.midX - w / 2, y: f.midY - h / 2, width: w, height: h), display: true)
         g.frame = g.panel.contentView!.bounds
         g.panel.alphaValue = 0

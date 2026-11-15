@@ -1,5 +1,6 @@
 // gridsnap — hotkey, drag a grid, focused window snaps to it. Build: ./build.sh
-// Sources/: Defaults (stored settings), AX (window plumbing), Grid (overlay), Presets, Hotkeys, ShortcutButton, SettingsWindow, Menu
+// Sources/: Defaults (stored settings), AX (window plumbing), Grid (overlay), Themes and BuiltinThemes (its look), Presets, Hotkeys,
+// ShortcutButton, SettingsWindow, Menu
 import Cocoa
 
 let app = NSApplication.shared

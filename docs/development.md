@@ -34,6 +34,8 @@ All the code is in `Sources/`:
 | `main.swift` | Startup |
 | `AX.swift` | The code that finds and moves windows |
 | `Grid.swift` | The grid overlay |
+| `Themes.swift` | The code that reads a theme and finds its problems |
+| `BuiltinThemes.swift` | The ten built-in themes, as JSON |
 | `Presets.swift` | Presets |
 | `Hotkeys.swift` | Global shortcuts |
 | `ShortcutButton.swift` | The button that records a shortcut |

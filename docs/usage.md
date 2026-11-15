@@ -64,6 +64,8 @@ To open Settings, click the GridSnap icon in the menu bar and choose **Settingsâ
 | Undo snap | The shortcut that undoes the last snap |
 | Columns and Rows | The size of the grid |
 | Gap | The space, in points, between snapped windows |
+| Appearance | Whether the panel is light, dark, or matches macOS |
+| Theme | The colours and shapes of the panel. [Themes](themes.md) explains how to make your own. |
 | Show | Whether the panel shows the app's icon and name above the cells, and the preset list under them |
 | Target | Whether GridSnap moves the focused window or the window under the cursor |
 | Presets | Your presets. You can change a preset's name and shortcut in the table. To remove a preset, select it and click **âˆ’**. |
