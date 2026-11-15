@@ -50,13 +50,15 @@ open /Applications/GridSnap.app
 | Move the selection | Arrow keys |
 | Grow or shrink it | Shift+→ / Shift+↑ grow, Shift+← / Shift+↓ shrink |
 | Use another display's grid | Click it, or press Tab |
-| Cancel | Esc, or drag onto the app header or outside the panel and release |
+| Cancel | Esc, or drag outside the panel and release |
 | Dismiss | Click anywhere outside the grid |
 | Save a preset | Hold Shift when releasing or pressing Return, or use **+** in Settings |
 | Apply a preset | Its shortcut, or the Presets menu |
 | Undo last snap | ⌃⌥Z by default, press again to redo |
 
 The grid opens with the window's current cells outlined, so Return alone aligns it to the grid.
+
+While you drag, the whole panel counts: on the margins or the app header the nearest edge cell stays selected. Outside the panel the window jumps back, and releasing there cancels.
 
 With more than one display, a grid appears on each of them. Select cells on any display's grid and the window snaps to that display, so a drag on the other monitor's grid moves the window there. The keyboard starts on the grid for the display the window is on; Tab moves the selection, and the window with it, to the next display. A preset's shortcut snaps to the display the window is already on.
 
