@@ -88,7 +88,7 @@ final class GridView: NSView {
         guard gridActive else { return }
         let p = convert(e.locationInWindow, from: nil)
         guard cellArea.contains(p) else { return }   // a click on the header selects nothing
-        if p.y < grid.minY - 4 { pressed = entry(e); needsDisplay = true; return }
+        if !list.isEmpty, p.y < grid.minY - 4 { pressed = entry(e); needsDisplay = true; return }
         dragging = self; claim(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
     }
     func track(_ e: NSEvent) {   // cursor outside the panel or on the header = no selection, so releasing there cancels
