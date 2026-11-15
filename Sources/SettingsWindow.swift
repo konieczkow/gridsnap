@@ -98,15 +98,23 @@ func shortcutRow(_ current: @escaping () -> (code: Int, mods: Int, label: String
     }
     return b
 }
-let shortcut = shortcutRow({ mainCombo }, keys: ("keyCode", "keyMods", "keyLabel"), isMain: true, y: 508)
-let undoShortcut = shortcutRow({ undoCombo }, keys: ("undoCode", "undoMods", "undoLabel"), isMain: false, y: 468)
+let shortcut = shortcutRow({ mainCombo }, keys: ("keyCode", "keyMods", "keyLabel"), isMain: true, y: 566)
+let undoShortcut = shortcutRow({ undoCombo }, keys: ("undoCode", "undoMods", "undoLabel"), isMain: false, y: 526)
 
 let prefs: NSWindow = {
-    let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 560), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+    let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 618), styleMask: [.titled, .closable], backing: .buffered, defer: false)
     w.title = "GridSnap Settings"
     w.isReleasedWhenClosed = false
     let caption = NSTextField(labelWithString: "Show grid:")
-    caption.frame = NSRect(x: 20, y: 514, width: 90, height: 20); caption.alignment = .right
+    caption.frame = NSRect(x: 20, y: 572, width: 90, height: 20); caption.alignment = .right
+    let showCaption = NSTextField(labelWithString: "Show:")
+    showCaption.frame = NSRect(x: 20, y: 384, width: 90, height: 20); showCaption.alignment = .right
+    let headerCheck = NSButton(checkboxWithTitle: "App icon and name", target: nil, action: nil)
+    let listCheck = NSButton(checkboxWithTitle: "Preset list", target: nil, action: nil)
+    headerCheck.frame = NSRect(x: 118, y: 384, width: 170, height: 20); headerCheck.toolTip = "The app whose window will move, above the cells."
+    listCheck.frame = NSRect(x: 118, y: 360, width: 170, height: 20)
+    listCheck.toolTip = "The first nine presets, under the cells. Keys 1 to 9 apply them whether or not the list is shown."
+    for (c, key) in [(headerCheck, "showHeader"), (listCheck, "showList")] { c.bind(.value, to: NSUserDefaultsController.shared, withKeyPath: "values." + key, options: nil) }
     let targetCaption = NSTextField(labelWithString: "Target:")
     targetCaption.frame = NSRect(x: 20, y: 326, width: 90, height: 20); targetCaption.alignment = .right
     let focusedRadio = NSButton(radioButtonWithTitle: "Focused window", target: actions, action: #selector(MenuActions.pickTarget))
@@ -125,11 +133,11 @@ let prefs: NSWindow = {
     plusMinus.setToolTip("Opens the grid: drag a region to save it as a preset. Shift-release on the grid does the same.", forSegment: 0)
     plusMinus.setToolTip("Removes the selected preset.", forSegment: 1)
     let undoCaption = NSTextField(labelWithString: "Undo snap:")
-    undoCaption.frame = NSRect(x: 20, y: 474, width: 90, height: 20); undoCaption.alignment = .right
-    let views = [caption, shortcut, undoCaption, undoShortcut, targetCaption, focusedRadio, cursorRadio, presetsCaption, scroll, plusMinus]
-        + settingRow("Columns:", key: "cols", y: 428, min: 1, max: 24, step: 1)
-        + settingRow("Rows:", key: "rows", y: 394, min: 1, max: 24, step: 1)
-        + settingRow("Gap:", key: "gap", y: 360, min: 0, max: 64, step: 2, unit: "points")
+    undoCaption.frame = NSRect(x: 20, y: 532, width: 90, height: 20); undoCaption.alignment = .right
+    let views = [caption, shortcut, undoCaption, undoShortcut, showCaption, headerCheck, listCheck, targetCaption, focusedRadio, cursorRadio, presetsCaption, scroll, plusMinus]
+        + settingRow("Columns:", key: "cols", y: 486, min: 1, max: 24, step: 1)
+        + settingRow("Rows:", key: "rows", y: 452, min: 1, max: 24, step: 1)
+        + settingRow("Gap:", key: "gap", y: 418, min: 0, max: 64, step: 2, unit: "points")
     for v in views { w.contentView?.addSubview(v) }
     NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: w, queue: nil) { _ in
         ShortcutButton.active?.cancelRecording(); NSApp.hide(nil)   // give focus back

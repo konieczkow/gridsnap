@@ -1,7 +1,7 @@
 import Cocoa
 import Carbon
 
-// grid, gap, hotkey (keyCode/keyMods/keyLabel, default ⌃⌥D), target rule and presets live in UserDefaults
+// grid, gap, hotkey (keyCode/keyMods/keyLabel, default ⌃⌥D), target rule, what the panel shows (showHeader, showList) and presets live in UserDefaults
 let defaultPresets = [
     Preset(name: "Full screen", x: 0, y: 0, w: 1, h: 1, keyCode: kVK_ANSI_F, keyMods: optionKey | controlKey, keyLabel: "⌃⌥F"),
     Preset(name: "Left half", x: 0, y: 0, w: 0.5, h: 1),
@@ -22,7 +22,7 @@ let defaults: UserDefaults = {
             d.set(try! JSONEncoder().encode(old + defaultPresets.dropFirst(old.count)), forKey: "presets")
         }
     }
-    d.register(defaults: ["cols": 12, "rows": 8, "gap": 0, "presets": try! JSONEncoder().encode(defaultPresets)])
+    d.register(defaults: ["cols": 12, "rows": 8, "gap": 0, "showHeader": true, "showList": true, "presets": try! JSONEncoder().encode(defaultPresets)])
     return d
 }()
 var cols: Int { min(max(defaults.integer(forKey: "cols"), 1), 24) }

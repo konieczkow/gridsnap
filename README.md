@@ -53,7 +53,7 @@ open /Applications/GridSnap.app
 | Cancel | Esc, or drag outside the panel and release |
 | Dismiss | Click anywhere outside the grid |
 | Save a preset | Hold Shift when releasing or pressing Return, or use **+** in Settings |
-| Apply a preset | Its shortcut, or the Presets menu |
+| Apply a preset | Its shortcut, or the Presets menu. With the grid open, keys 1 to 9, or a click in the list under the cells if it is shown |
 | Undo last snap | ⌃⌥Z by default, press again to redo |
 
 The grid opens with the window's current cells outlined, so Return alone aligns it to the grid.
@@ -64,7 +64,7 @@ With more than one display, a grid appears on each of them. Select cells on any 
 
 Wider gutters in the grid mark halves, thirds and quarters.
 
-**Settings** (menu bar icon › Settings…) holds both shortcuts, columns and rows, the gap in points between snapped windows, the target rule, and the presets table. Names and shortcuts are editable in place; **−** removes the selected preset.
+**Settings** (menu bar icon › Settings…) holds both shortcuts, columns and rows, the gap in points between snapped windows, whether the grid shows the app's icon and name and the preset list, the target rule, and the presets table. Names and shortcuts are editable in place; **−** removes the selected preset.
 
 ## Development
 

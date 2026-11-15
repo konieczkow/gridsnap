@@ -54,7 +54,7 @@ final class GridView: NSView {
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for e: NSEvent?) -> Bool { true }
 
-    var headerHeight: CGFloat { targetApp == nil ? 0 : 52 }   // the target app's icon and name; 0 without a target
+    var headerHeight: CGFloat = 0   // the target app's icon and name; set when the grid opens, 0 without a target or with the header turned off
     var list: [Preset] = [], pressed: Int?
     var listHeight: CGFloat { list.isEmpty ? 0 : CGFloat((list.count + 2) / 3) * 20 + 8 }
     var grid: NSRect { NSRect(x: 10, y: 10 + listHeight, width: bounds.width - 20, height: bounds.height - 20 - listHeight - headerHeight) }
@@ -148,7 +148,7 @@ final class GridView: NSView {
     override func draw(_ dirty: NSRect) {
         guard !grid.isEmpty else { return }   // layer-backed views get drawn at zero size before the panel is shown
         let style = NSMutableParagraphStyle(); style.lineBreakMode = .byTruncatingTail
-        if let app = targetApp {   // header: the app the window belongs to, same on every display
+        if headerHeight > 0, let app = targetApp {   // header: the app the window belongs to, same on every display
             let icon = NSRect(x: grid.minX + 2, y: cellArea.maxY, width: headerHeight - 16, height: headerHeight - 16)
             app.icon?.draw(in: icon, from: .zero, operation: .sourceOver, fraction: 1)
             let name = NSAttributedString(string: app.localizedName ?? "", attributes: [
@@ -243,7 +243,8 @@ func showGrid() {
     if original == nil { targetWindow = nil }
     moved = false; dragging = nil
     let screens = NSScreen.screens, ghosts = ghostFrames(), top = NSScreen.screens[0].frame.maxY
-    let list = recordMode ? [] : Array(presets.prefix(9))
+    let list = recordMode || !defaults.bool(forKey: "showList") ? [] : Array(presets.prefix(9))   // hiding the list leaves keys 1 to 9 working
+    let header: CGFloat = targetApp != nil && defaults.bool(forKey: "showHeader") ? 52 : 0
     while grids.count < screens.count { grids.append(spare.popLast() ?? GridView()) }
     while grids.count > screens.count { let g = grids.removeLast(); g.clear(); g.panel.orderOut(nil); spare.append(g) }
     let frame = original.map { NSRect(x: $0.0.x, y: top - $0.0.y - $0.1.height, width: $0.1.width, height: $0.1.height) }
@@ -251,7 +252,7 @@ func showGrid() {
     let keyFrame = (home ?? screenUnderCursor()).frame
     var key = grids[0]
     for (g, s) in zip(grids, screens) {
-        g.screen = s; g.list = list; g.clear()
+        g.screen = s; g.list = list; g.headerHeight = header; g.clear()
         g.ghosts = ghosts.map { screenFraction(of: $0, on: s) }.filter { !$0.isEmpty }
         if s.frame == keyFrame { key = g }
         if let r = frame, s.frame == home?.frame {
