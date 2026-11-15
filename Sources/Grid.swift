@@ -54,6 +54,7 @@ final class GridView: NSView {
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for e: NSEvent?) -> Bool { true }
 
+    var hover: (Int, Int)?   // the cell under the cursor, drawn when the theme styles "hover"
     var headerHeight: CGFloat = 0   // the target app's icon and name; set when the grid opens, 0 without a target or with the header turned off
     var list: [Preset] = [], pressed: Int?
     var listHeight: CGFloat { list.isEmpty ? 0 : CGFloat((list.count + 2) / 3) * 20 + 8 }
@@ -81,11 +82,23 @@ final class GridView: NSView {
     var selectionFrame: NSRect? { selectionFraction.map { screenFrame(fraction: $0, on: screen) } }
 
     var ghosts: [NSRect] = []
-    func clear() { start = nil; end = nil; pending = false; pressed = nil; needsDisplay = true; onPanel() }
+    func clear() { start = nil; end = nil; pending = false; pressed = nil; hover = nil; needsDisplay = true; onPanel() }
     // A drag that leaves the panel keeps its edge cells for the grace time, so overshooting the edge and releasing still snaps.
     // After that the selection lapses as it always did: the window goes back, and releasing cancels.
     var leftAt: TimeInterval?, lapse: Timer?
     func onPanel() { leftAt = nil; lapse?.invalidate(); lapse = nil }
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self))
+    }
+    override func mouseMoved(with e: NSEvent) {
+        let styled = look.hover.fill != nil || look.hover.stroke != nil
+        let c = styled && grid.contains(convert(e.locationInWindow, from: nil)) ? cell(e) : nil
+        if c?.0 != hover?.0 || c?.1 != hover?.1 { hover = c; needsDisplay = true }
+    }
+    override func mouseEntered(with e: NSEvent) { mouseMoved(with: e) }
+    override func mouseExited(with e: NSEvent) { if hover != nil { hover = nil; needsDisplay = true } }
     func claim() { for g in grids where g !== self { g.clear() } }   // a selection here drops any on another display
 
     override func mouseDown(with e: NSEvent) {
@@ -224,6 +237,9 @@ final class GridView: NSView {
             n.draw(at: NSPoint(x: cap.midX - n.size().width / 2, y: cap.midY - n.size().height / 2))
             (p.name as NSString).draw(in: NSRect(x: cap.maxX + 6, y: r.minY + 2, width: r.maxX - cap.maxX - 12, height: 15),
                                       withAttributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: ink(look.preset), .paragraphStyle: style])
+        }
+        if let h = hover, start == nil || pending {   // under the cursor, until a drag starts
+            cells(NSRect(x: h.0, y: h.1, width: 1, height: 1), look.hover)
         }
         if grids.count > 1, window?.isKeyWindow == true {
             var ring = look.focusRing; ring.fill = nil

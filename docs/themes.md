@@ -59,6 +59,7 @@ A file from **Edit a Copy…** lists every value of both versions, so everything
 | `ghost` | A window you snapped earlier | `fill`, `stroke`, `lineWidth`, `radius` |
 | `selection` | The cells you selected | `fill`, `stroke`, `lineWidth`, `radius` |
 | `pending` | The cells that the window covers when the grid opens, before you select anything | `fill`, `stroke`, `lineWidth`, `radius` |
+| `hover` | The cell under the pointer, before you start a drag. Default gives it no fill and no stroke, so nothing is drawn. | `fill`, `stroke`, `lineWidth`, `radius` |
 | `preset` | A line in the preset list. The fill and stroke show while you click it. | `fill`, `stroke`, `lineWidth`, `radius`, `text` |
 | `keycap` | The number beside a preset | `fill`, `stroke`, `lineWidth`, `radius`, `text` |
 | `focusRing` | The outline of the panel that has the keyboard, when you have more than one display | `stroke`, `lineWidth` |

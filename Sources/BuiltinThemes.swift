@@ -10,6 +10,7 @@ let builtinThemes: [(name: String, json: String)] = [
   "preset":    { "radius": 5 },
   "keycap":    { "radius": 4 },
   "focusRing": { "lineWidth": 2 },
+  "hover":     {},
   "spacing": 4,
   "dark": {
     "header":    { "text": "#FFFFFF 90%" },
