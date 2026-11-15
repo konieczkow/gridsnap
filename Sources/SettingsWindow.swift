@@ -41,6 +41,14 @@ let actions = MenuActions()
 final class PresetTable: NSObject, NSTableViewDataSource, NSTableViewDelegate {
     func numberOfRows(in t: NSTableView) -> Int { presets.count }
     func tableView(_ t: NSTableView, viewFor col: NSTableColumn?, row: Int) -> NSView? {
+        // a bare control is stretched to the row and draws its text at the top, so it sits centred in a container
+        let cell = NSView(), v = control(col, row)
+        v.translatesAutoresizingMaskIntoConstraints = false; cell.addSubview(v)
+        NSLayoutConstraint.activate([v.leadingAnchor.constraint(equalTo: cell.leadingAnchor), v.trailingAnchor.constraint(equalTo: cell.trailingAnchor),
+                                     v.centerYAnchor.constraint(equalTo: cell.centerYAnchor)])
+        return cell
+    }
+    func control(_ col: NSTableColumn?, _ row: Int) -> NSView {
         let p = presets[row]
         switch col?.identifier.rawValue {
         case "name":
