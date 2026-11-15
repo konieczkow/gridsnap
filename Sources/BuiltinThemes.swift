@@ -11,6 +11,7 @@ let builtinThemes: [(name: String, json: String)] = [
   "keycap":    { "radius": 4 },
   "focusRing": { "lineWidth": 2 },
   "hover":     {},
+  "layout":    { "width": 480, "padding": 10, "headerTop": 16, "iconSize": 36, "headerGap": 10, "nameSize": 20, "dimOthers": "100%", "shadow": false, "glass": true },
   "spacing": 4,
   "dark": {
     "header":    { "text": "#FFFFFF 90%" },

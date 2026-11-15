@@ -6,6 +6,8 @@ import Cocoa
 // Built-in themes are in BuiltinThemes.swift, the user's are .json files in themesFolder. A theme's id is its name
 // (built-in) or its file name.
 let themeElements = ["panel", "header", "cell", "ghost", "selection", "pending", "hover", "preset", "keycap", "focusRing"]
+// "layout" is not an element: it holds the panel's sizes, the dimming of the other displays, the shadow and the glass.
+let layoutProperties = ["width", "cellsHeight", "padding", "headerTop", "iconSize", "headerGap", "nameSize", "dimOthers", "shadow", "glass"]
 let styleProperties = ["fill", "stroke", "text", "lineWidth", "radius"]
 
 struct ThemeProblem: Error { var text: String }
@@ -28,9 +30,26 @@ struct Paint: Decodable {   // "#RRGGBB", "#RRGGBBAA", "accent" or "none", then 
     }
 }
 struct Style: Decodable { var fill, stroke, text: Paint?; var lineWidth, radius: CGFloat? }
+struct Percent: Decodable {   // "60%"
+    var value: CGFloat
+    init(from d: Decoder) throws {
+        let s = try d.singleValueContainer().decode(String.self)
+        guard s.hasSuffix("%"), let n = Double(s.dropLast()), (0...100).contains(n) else {
+            throw ThemeProblem(text: d.codingPath.map(\.stringValue).joined(separator: ".") + ": “\(s)” is not a percentage such as “60%”.")
+        }
+        value = n / 100
+    }
+}
+struct Layout: Decodable {
+    var width: CGFloat, cellsHeight: CGFloat?   // the panel's width; the cells' height, or none for the display's aspect
+    var padding, headerTop, iconSize, headerGap, nameSize: CGFloat   // the margin; then, top down, the space above the icon, the icon, the space under it; the name's font size
+    var dimOthers: Percent   // the opacity of the panels on the other displays
+    var shadow, glass: Bool
+}
 struct Look: Decodable {   // one mode of a theme, complete
     var panel, header, cell, ghost, selection, pending, hover, preset, keycap, focusRing: Style
     var spacing: CGFloat
+    var layout: Layout
 }
 
 let themesFolder = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("GridSnap/Themes")
@@ -53,8 +72,9 @@ var darkMode: Bool {
 
 func keyProblem(_ json: [String: Any], modes: Bool = true) -> String? {   // a misspelt key would otherwise do nothing, silently
     for (k, v) in json.sorted(by: { $0.key < $1.key }) where k != "spacing" {
-        guard themeElements.contains(k) || modes && (k == "dark" || k == "light") else { return "Unknown key “\(k)”." }
+        guard themeElements.contains(k) || k == "layout" || modes && (k == "dark" || k == "light") else { return "Unknown key “\(k)”." }
         guard let d = v as? [String: Any] else { return "“\(k)” must be an object in braces." }
+        if k == "layout" { if let bad = d.keys.sorted().first(where: { !layoutProperties.contains($0) }) { return "Unknown key “\(bad)” in “layout”." }; continue }
         if !themeElements.contains(k) { if let p = keyProblem(d, modes: false) { return "In “\(k)”: \(p)" } }
         else if let bad = d.keys.sorted().first(where: { !styleProperties.contains($0) }) { return "Unknown key “\(bad)” in “\(k)”." }
     }
@@ -92,7 +112,10 @@ func themeProblem(_ id: String) -> String? {
     do { _ = try loadTheme(id); return nil }
     catch let p as ThemeProblem { return p.text }
     catch DecodingError.typeMismatch(_, let c), DecodingError.valueNotFound(_, let c) {
-        let path = c.codingPath.map(\.stringValue), number = ["lineWidth", "radius", "spacing"].contains(path.last ?? "")
+        let path = c.codingPath.map(\.stringValue), last = path.last ?? ""
+        let number = ["lineWidth", "radius", "spacing"].contains(last) || path.first == "layout" && !["dimOthers", "shadow", "glass"].contains(last)
+        if ["shadow", "glass"].contains(last) { return path.joined(separator: ".") + " must be true or false." }
+        if last == "dimOthers" { return path.joined(separator: ".") + " must be a percentage in quotes." }
         return path.joined(separator: ".") + (number ? " must be a number." : " must be a colour in quotes.")
     }
     catch { return (error as NSError).userInfo[NSDebugDescriptionErrorKey] as? String ?? error.localizedDescription }
@@ -110,7 +133,15 @@ func themeText(_ id: String) throws -> String {   // every value of both modes, 
             }
             return "    " + "\"\(e)\":".padding(toLength: 13, withPad: " ", startingAt: 0) + "{ \(values.joined(separator: ", ")) },\n"
         }
-        return "  \"\(dark ? "dark" : "light")\": {\n\(lines.joined())    \"spacing\": \(all["spacing"] ?? 4)\n  }"
+        let layout = all["layout"] as? [String: Any] ?? [:]
+        let sizes = layoutProperties.compactMap { p in
+            layout[p].flatMap { v -> String? in
+                if v is NSNull { return nil }
+                if let n = v as? NSNumber, CFGetTypeID(n) == CFBooleanGetTypeID() { return "\"\(p)\": \(n.boolValue)" }
+                return "\"\(p)\": " + ((v as? String).map { "\"\($0)\"" } ?? "\(v)")
+            }
+        }
+        return "  \"\(dark ? "dark" : "light")\": {\n\(lines.joined())    \"layout\":    { \(sizes.joined(separator: ", ")) },\n    \"spacing\": \(all["spacing"] ?? 4)\n  }"
     }
     return "{\n\(mode(true)),\n\(mode(false))\n}\n"
 }
