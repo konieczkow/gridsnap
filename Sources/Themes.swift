@@ -5,7 +5,7 @@ import Cocoa
 // under "dark" and "light" in one, and whatever a theme leaves out comes from Default.
 // Built-in themes are in BuiltinThemes.swift, the user's are .json files in themesFolder. A theme's id is its name
 // (built-in) or its file name.
-let themeElements = ["panel", "header", "cell", "ghost", "selection", "pending", "preset", "keycap", "focusRing"]
+let themeElements = ["panel", "header", "cell", "ghost", "selection", "pending", "hover", "preset", "keycap", "focusRing"]
 let styleProperties = ["fill", "stroke", "text", "lineWidth", "radius"]
 
 struct ThemeProblem: Error { var text: String }
@@ -29,7 +29,7 @@ struct Paint: Decodable {   // "#RRGGBB", "#RRGGBBAA", "accent" or "none", then 
 }
 struct Style: Decodable { var fill, stroke, text: Paint?; var lineWidth, radius: CGFloat? }
 struct Look: Decodable {   // one mode of a theme, complete
-    var panel, header, cell, ghost, selection, pending, preset, keycap, focusRing: Style
+    var panel, header, cell, ghost, selection, pending, hover, preset, keycap, focusRing: Style
     var spacing: CGFloat
 }
 
