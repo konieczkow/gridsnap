@@ -81,7 +81,11 @@ final class GridView: NSView {
     var selectionFrame: NSRect? { selectionFraction.map { screenFrame(fraction: $0, on: screen) } }
 
     var ghosts: [NSRect] = []
-    func clear() { start = nil; end = nil; pending = false; pressed = nil; needsDisplay = true }
+    func clear() { start = nil; end = nil; pending = false; pressed = nil; needsDisplay = true; onPanel() }
+    // A drag that leaves the panel keeps its edge cells for the grace time, so overshooting the edge and releasing still snaps.
+    // After that the selection lapses as it always did: the window goes back, and releasing cancels.
+    var leftAt: TimeInterval?, lapse: Timer?
+    func onPanel() { leftAt = nil; lapse?.invalidate(); lapse = nil }
     func claim() { for g in grids where g !== self { g.clear() } }   // a selection here drops any on another display
 
     override func mouseDown(with e: NSEvent) {
@@ -89,12 +93,28 @@ final class GridView: NSView {
         let p = convert(e.locationInWindow, from: nil)
         guard cellArea.contains(p) else { return }   // a click on the header selects nothing
         if !list.isEmpty, p.y < grid.minY - 4 { pressed = entry(e); needsDisplay = true; return }
-        dragging = self; claim(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
+        dragging = self; claim(); onPanel(); start = cell(e); end = start; pending = false; needsDisplay = true   // no preview yet: one cell is a tiny window, wait for the drag
     }
-    func track(_ e: NSEvent) {   // anywhere on the panel, header included, a drag keeps the edge cell; outside the panel = no selection, so releasing there cancels
+    func track(_ e: NSEvent) {   // anywhere on the panel, header included, a drag keeps the edge cell; outside the panel it does so for the grace time, then = no selection, so releasing there cancels
         guard gridActive else { return }
-        let new = bounds.contains(convert(e.locationInWindow, from: nil)) ? cell(e) : nil
-        guard new?.0 != end?.0 || new?.1 != end?.1 else { return }   // only hit AX when the cell changes
+        let grace = defaults.double(forKey: "grace")
+        var new: (Int, Int)? = cell(e)
+        if bounds.contains(convert(e.locationInWindow, from: nil)) { onPanel() }
+        else if let t = leftAt { if e.timestamp - t >= grace { new = nil } }
+        else if grace > 0 {   // just left: the timer drops the selection even if the pointer then stays still
+            leftAt = e.timestamp
+            // counted from when the pointer left, not from now, so that the timer and a release's timestamp agree on when the time is up
+            let timer = Timer(timeInterval: max(grace - (ProcessInfo.processInfo.systemUptime - e.timestamp), 0), repeats: false) { [weak self] _ in
+                guard let self, dragging === self else { return }
+                self.leftAt = -.infinity   // lapsed for good: a late-delivered drag event from before the timer must not select again
+                self.set(end: nil)
+            }
+            RunLoop.main.add(timer, forMode: .common); lapse = timer
+        } else { new = nil }
+        set(end: new)
+    }
+    func set(end new: (Int, Int)?) {
+        guard gridActive, new?.0 != end?.0 || new?.1 != end?.1 else { return }   // only hit AX when the cell changes
         end = new; needsDisplay = true; preview()
     }
     override func mouseDragged(with e: NSEvent) { if dragging === self { track(e) } }

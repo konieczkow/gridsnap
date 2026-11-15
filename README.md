@@ -34,7 +34,7 @@ When you first open GridSnap, it asks for the **Accessibility** permission, whic
 
 1. Bring the window you want to move to the front, then press ⌃⌥D (Control-Option-D). A grid panel appears on every display.
 2. Drag across the cells you want. The window follows your drag.
-3. Release to snap the window. To cancel, press Esc or release outside the panel.
+3. Release to snap the window. To cancel, press Esc, or drag off the panel, wait a second, and release.
 
 To undo the last snap, press ⌃⌥Z.
 

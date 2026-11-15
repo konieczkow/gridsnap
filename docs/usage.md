@@ -8,7 +8,11 @@ Press ⌃⌥D (Control-Option-D). A grid panel appears on every display. The pan
 
 Click a cell, or drag across the cells you want. The window follows your drag and snaps when you release. Wider gaps between the cells mark the halves, thirds and quarters of the display.
 
-If your drag leaves the cells but stays on the panel, the nearest cells stay selected. If your drag leaves the panel, the window returns to where it was, and releasing there cancels the snap.
+If your drag leaves the cells but stays on the panel, the nearest cells stay selected.
+
+If your drag leaves the panel, the nearest cells stay selected for one second. A fast drag that overshoots the panel therefore still snaps the window when you release. After one second off the panel, the window returns to where it was, and releasing there cancels the snap. Drag back onto the panel to select cells again.
+
+To change the one second, run `defaults write com.zerodivisionerror.gridsnap grace -float 0.5` in Terminal, with the time you want in seconds. With `0`, the snap is cancelled as soon as the drag leaves the panel.
 
 ## Snap a window with the keyboard
 
@@ -28,7 +32,7 @@ The selection starts on the cells that the window covers now. If you press Retur
 
 ## Cancel
 
-To cancel, press Esc, click anywhere outside the panel, or drag outside the panel and release. The window returns to where it was.
+To cancel, press Esc or click anywhere outside the panel. During a drag, you can also drag off the panel, wait one second until the window returns to where it was, and release. However you cancel, the window returns to where it was.
 
 ## Use more than one display
 
