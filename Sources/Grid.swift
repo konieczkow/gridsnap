@@ -174,9 +174,10 @@ final class GridView: NSView {
             name.draw(in: NSRect(x: icon.maxX + 12, y: icon.midY - s.height / 2, width: grid.maxX - icon.maxX - 12, height: s.height))
         }
         let cw = grid.width / CGFloat(cols), ch = grid.height / CGFloat(rows), inset = max(look.spacing, 0) / 2
-        // extra gap at boundary i of n: halves widest, thirds/quarters narrower, everything else uniform
+        let marks = defaults.bool(forKey: "showMarks")
+        // extra gap at boundary i of n: halves widest, thirds/quarters narrower, everything else uniform; none at all with the marks turned off
         func gap(_ i: Int, _ n: Int) -> CGFloat {
-            i == 0 || i == n ? 0 : (i * 2) % n == 0 ? 3 : (i * 3) % n == 0 || (i * 4) % n == 0 ? 1.5 : 0
+            !marks || i == 0 || i == n ? 0 : (i * 2) % n == 0 ? 3 : (i * 3) % n == 0 || (i * 4) % n == 0 ? 1.5 : 0
         }
         func edge(_ c: CGFloat, _ n: Int, _ size: CGFloat, _ tol: CGFloat, _ sign: CGFloat) -> CGFloat {
             let i = c.rounded()

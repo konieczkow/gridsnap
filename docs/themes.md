@@ -73,7 +73,7 @@ A file from **Edit a Copy…** lists every value of both versions, so everything
 | `lineWidth` | The width of the outline, in points. `0` draws no outline. |
 | `radius` | How round the corners are, in points. `0` gives square corners, and a large number gives a pill or a circle. |
 
-`"spacing"` is not part of an element. It is the space between two cells, in points. `0` makes the cells touch, except at the halves, thirds and quarters of the display, where the gaps are wider.
+`"spacing"` is not part of an element. It is the space between two cells, in points. `0` makes the cells touch, except at the halves, thirds and quarters of the display, where the gaps are wider. To remove those gaps too, turn off **Wider gaps at halves, thirds and quarters** in Settings.
 
 ### Colours
 

@@ -66,6 +66,6 @@ To open Settings, click the GridSnap icon in the menu bar and choose **Settingsâ
 | Gap | The space, in points, between snapped windows |
 | Appearance | Whether the panel is light, dark, or matches macOS |
 | Theme | The colours and shapes of the panel. [Themes](themes.md) explains how to make your own. |
-| Show | Whether the panel shows the app's icon and name above the cells, and the preset list under them |
+| Show | Whether the panel shows the app's icon and name above the cells, the preset list under them, and the wider gaps that mark the halves, thirds and quarters |
 | Target | Whether GridSnap moves the focused window or the window under the cursor |
 | Presets | Your presets. You can change a preset's name and shortcut in the table. To remove a preset, select it and click **âˆ’**. |

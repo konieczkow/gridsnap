@@ -112,22 +112,22 @@ func shortcutRow(_ current: @escaping () -> (code: Int, mods: Int, label: String
     }
     return b
 }
-let shortcut = shortcutRow({ mainCombo }, keys: ("keyCode", "keyMods", "keyLabel"), isMain: true, y: 652)
-let undoShortcut = shortcutRow({ undoCombo }, keys: ("undoCode", "undoMods", "undoLabel"), isMain: false, y: 612)
+let shortcut = shortcutRow({ mainCombo }, keys: ("keyCode", "keyMods", "keyLabel"), isMain: true, y: 676)
+let undoShortcut = shortcutRow({ undoCombo }, keys: ("undoCode", "undoMods", "undoLabel"), isMain: false, y: 636)
 
 let themePopup: NSPopUpButton = {
-    let p = NSPopUpButton(frame: NSRect(x: 117, y: 440, width: 180, height: 26))
+    let p = NSPopUpButton(frame: NSRect(x: 117, y: 464, width: 180, height: 26))
     p.target = actions; p.action = #selector(MenuActions.pickTheme); return p
 }()
 let themeEdit: NSButton = {
     let b = NSButton(title: "", target: actions, action: #selector(MenuActions.editTheme))
-    b.frame = NSRect(x: 305, y: 437, width: 130, height: 32)
+    b.frame = NSRect(x: 305, y: 461, width: 130, height: 32)
     b.toolTip = "A theme is a file you can change in a text editor. A built-in theme is copied first. Open the grid to see your changes."
     return b
 }()
 let themeNote: NSTextField = {   // what is wrong with the chosen theme's file, empty when nothing is
     let f = NSTextField(labelWithString: "")
-    f.frame = NSRect(x: 120, y: 414, width: 320, height: 16); f.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
+    f.frame = NSRect(x: 120, y: 438, width: 320, height: 16); f.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
     f.textColor = .systemRed; f.lineBreakMode = .byTruncatingTail; return f
 }()
 func refreshThemes() {   // the folder can change behind our back, so the menu is rebuilt whenever Settings comes forward
@@ -145,27 +145,30 @@ func refreshThemes() {   // the folder can change behind our back, so the menu i
 }
 
 let prefs: NSWindow = {
-    let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 704), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+    let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 728), styleMask: [.titled, .closable], backing: .buffered, defer: false)
     w.title = "GridSnap Settings"
     w.isReleasedWhenClosed = false
     let caption = NSTextField(labelWithString: "Show grid:")
-    caption.frame = NSRect(x: 20, y: 658, width: 90, height: 20); caption.alignment = .right
+    caption.frame = NSRect(x: 20, y: 682, width: 90, height: 20); caption.alignment = .right
     let appearanceCaption = NSTextField(labelWithString: "Appearance:")
-    appearanceCaption.frame = NSRect(x: 20, y: 476, width: 90, height: 20); appearanceCaption.alignment = .right
-    let appearance = NSPopUpButton(frame: NSRect(x: 117, y: 474, width: 180, height: 26))
+    appearanceCaption.frame = NSRect(x: 20, y: 500, width: 90, height: 20); appearanceCaption.alignment = .right
+    let appearance = NSPopUpButton(frame: NSRect(x: 117, y: 498, width: 180, height: 26))
     for (i, title) in ["Match System", "Light", "Dark"].enumerated() { appearance.addItem(withTitle: title); appearance.lastItem?.tag = i }
     appearance.bind(.selectedTag, to: NSUserDefaultsController.shared, withKeyPath: "values.appearance", options: nil)
     appearance.toolTip = "Every theme has a light and a dark version."
     let themeCaption = NSTextField(labelWithString: "Theme:")
-    themeCaption.frame = NSRect(x: 20, y: 442, width: 90, height: 20); themeCaption.alignment = .right
+    themeCaption.frame = NSRect(x: 20, y: 466, width: 90, height: 20); themeCaption.alignment = .right
     let showCaption = NSTextField(labelWithString: "Show:")
-    showCaption.frame = NSRect(x: 20, y: 384, width: 90, height: 20); showCaption.alignment = .right
+    showCaption.frame = NSRect(x: 20, y: 408, width: 90, height: 20); showCaption.alignment = .right
     let headerCheck = NSButton(checkboxWithTitle: "App icon and name", target: nil, action: nil)
     let listCheck = NSButton(checkboxWithTitle: "Preset list", target: nil, action: nil)
-    headerCheck.frame = NSRect(x: 118, y: 384, width: 170, height: 20); headerCheck.toolTip = "The app whose window will move, above the cells."
-    listCheck.frame = NSRect(x: 118, y: 360, width: 170, height: 20)
+    headerCheck.frame = NSRect(x: 118, y: 408, width: 170, height: 20); headerCheck.toolTip = "The app whose window will move, above the cells."
+    listCheck.frame = NSRect(x: 118, y: 384, width: 170, height: 20)
     listCheck.toolTip = "The first nine presets, under the cells. Keys 1 to 9 apply them whether or not the list is shown."
-    for (c, key) in [(headerCheck, "showHeader"), (listCheck, "showList")] { c.bind(.value, to: NSUserDefaultsController.shared, withKeyPath: "values." + key, options: nil) }
+    let marksCheck = NSButton(checkboxWithTitle: "Wider gaps at halves, thirds and quarters", target: nil, action: nil)
+    marksCheck.frame = NSRect(x: 118, y: 360, width: 320, height: 20)
+    marksCheck.toolTip = "Extra space between the cells where the display divides into halves, thirds and quarters."
+    for (c, key) in [(headerCheck, "showHeader"), (listCheck, "showList"), (marksCheck, "showMarks")] { c.bind(.value, to: NSUserDefaultsController.shared, withKeyPath: "values." + key, options: nil) }
     let targetCaption = NSTextField(labelWithString: "Target:")
     targetCaption.frame = NSRect(x: 20, y: 326, width: 90, height: 20); targetCaption.alignment = .right
     let focusedRadio = NSButton(radioButtonWithTitle: "Focused window", target: actions, action: #selector(MenuActions.pickTarget))
@@ -184,12 +187,12 @@ let prefs: NSWindow = {
     plusMinus.setToolTip("Opens the grid: drag a region to save it as a preset. Shift-release on the grid does the same.", forSegment: 0)
     plusMinus.setToolTip("Removes the selected preset.", forSegment: 1)
     let undoCaption = NSTextField(labelWithString: "Undo snap:")
-    undoCaption.frame = NSRect(x: 20, y: 618, width: 90, height: 20); undoCaption.alignment = .right
+    undoCaption.frame = NSRect(x: 20, y: 642, width: 90, height: 20); undoCaption.alignment = .right
     let views = [caption, shortcut, undoCaption, undoShortcut, appearanceCaption, appearance, themeCaption, themePopup, themeEdit, themeNote,
-                 showCaption, headerCheck, listCheck, targetCaption, focusedRadio, cursorRadio, presetsCaption, scroll, plusMinus]
-        + settingRow("Columns:", key: "cols", y: 572, min: 1, max: 24, step: 1)
-        + settingRow("Rows:", key: "rows", y: 538, min: 1, max: 24, step: 1)
-        + settingRow("Gap:", key: "gap", y: 504, min: 0, max: 64, step: 2, unit: "points")
+                 showCaption, headerCheck, listCheck, marksCheck, targetCaption, focusedRadio, cursorRadio, presetsCaption, scroll, plusMinus]
+        + settingRow("Columns:", key: "cols", y: 596, min: 1, max: 24, step: 1)
+        + settingRow("Rows:", key: "rows", y: 562, min: 1, max: 24, step: 1)
+        + settingRow("Gap:", key: "gap", y: 528, min: 0, max: 64, step: 2, unit: "points")
     for v in views { w.contentView?.addSubview(v) }
     NotificationCenter.default.addObserver(forName: NSWindow.didBecomeKeyNotification, object: w, queue: nil) { _ in refreshThemes() }
     NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: w, queue: nil) { _ in

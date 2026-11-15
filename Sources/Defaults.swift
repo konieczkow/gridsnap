@@ -1,7 +1,7 @@
 import Cocoa
 import Carbon
 
-// grid, gap, hotkey (keyCode/keyMods/keyLabel, default ⌃⌥D), target rule, what the panel shows (showHeader, showList), its theme
+// grid, gap, hotkey (keyCode/keyMods/keyLabel, default ⌃⌥D), target rule, what the panel shows (showHeader, showList, showMarks), its theme
 // (theme: a built-in name or a file name; appearance: 0 match system, 1 light, 2 dark) and presets live in UserDefaults
 let defaultPresets = [
     Preset(name: "Full screen", x: 0, y: 0, w: 1, h: 1, keyCode: kVK_ANSI_F, keyMods: optionKey | controlKey, keyLabel: "⌃⌥F"),
@@ -23,7 +23,7 @@ let defaults: UserDefaults = {
             d.set(try! JSONEncoder().encode(old + defaultPresets.dropFirst(old.count)), forKey: "presets")
         }
     }
-    d.register(defaults: ["cols": 12, "rows": 8, "gap": 0, "showHeader": true, "showList": true, "theme": "Default", "appearance": 0,
+    d.register(defaults: ["cols": 12, "rows": 8, "gap": 0, "showHeader": true, "showList": true, "showMarks": true, "theme": "Default", "appearance": 0,
                           "presets": try! JSONEncoder().encode(defaultPresets)])
     return d
 }()
