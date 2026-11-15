@@ -54,15 +54,18 @@ final class GridView: NSView {
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for e: NSEvent?) -> Bool { true }
 
+    // the sizes come from the theme's "layout" (Themes.swift)
     var hover: (Int, Int)?   // the cell under the cursor, drawn when the theme styles "hover"
-    var headerHeight: CGFloat = 0   // the target app's icon and name; set when the grid opens, 0 without a target or with the header turned off
+    var showsHeader = false   // the target app's icon and name; set when the grid opens, off without a target or with the header turned off
+    var pad: CGFloat { look.layout.padding }
+    var top: CGFloat { let l = look.layout; return showsHeader ? l.headerTop + l.iconSize + l.headerGap : pad }   // from the top edge to the cells
     var list: [Preset] = [], pressed: Int?
     var listHeight: CGFloat { list.isEmpty ? 0 : CGFloat((list.count + 2) / 3) * 20 + 8 }
-    var grid: NSRect { NSRect(x: 10, y: 10 + listHeight, width: bounds.width - 20, height: bounds.height - 20 - listHeight - headerHeight) }
-    var cellArea: NSRect { NSRect(x: 0, y: 0, width: bounds.width, height: bounds.height - headerHeight) }   // the panel minus the header
+    var grid: NSRect { NSRect(x: pad, y: pad + listHeight, width: bounds.width - 2 * pad, height: bounds.height - pad - listHeight - top) }
+    var cellArea: NSRect { NSRect(x: 0, y: 0, width: bounds.width, height: bounds.height - (showsHeader ? look.layout.headerTop + look.layout.iconSize : 0)) }   // the panel minus the icon and name
     func entryRect(_ i: Int) -> NSRect {
         let w = grid.width / 3
-        return NSRect(x: grid.minX + CGFloat(i % 3) * w, y: 10 + CGFloat((list.count - 1) / 3 - i / 3) * 20, width: w, height: 20)
+        return NSRect(x: grid.minX + CGFloat(i % 3) * w, y: pad + CGFloat((list.count - 1) / 3 - i / 3) * 20, width: w, height: 20)
     }
     func entry(_ e: NSEvent) -> Int? { list.indices.first { entryRect($0).contains(convert(e.locationInWindow, from: nil)) } }
     func cell(_ e: NSEvent) -> (Int, Int) {
@@ -97,7 +100,10 @@ final class GridView: NSView {
         let c = styled && grid.contains(convert(e.locationInWindow, from: nil)) ? cell(e) : nil
         if c?.0 != hover?.0 || c?.1 != hover?.1 { hover = c; needsDisplay = true }
     }
-    override func mouseEntered(with e: NSEvent) { mouseMoved(with: e) }
+    override func mouseEntered(with e: NSEvent) {   // with "dimOthers", the panel under the cursor takes the keyboard, so the dimming follows the cursor
+        if gridActive, look.layout.dimOthers.value < 1, !panel.isKeyWindow { panel.makeKey(); panel.makeFirstResponder(self) }
+        mouseMoved(with: e)
+    }
     override func mouseExited(with e: NSEvent) { if hover != nil { hover = nil; needsDisplay = true } }
     func claim() { for g in grids where g !== self { g.clear() } }   // a selection here drops any on another display
 
@@ -198,11 +204,11 @@ final class GridView: NSView {
             return box(bounds.insetBy(dx: i, dy: i), s)
         }
         paint(rim(look.panel), look.panel)
-        if headerHeight > 0, let app = targetApp {   // header: the app the window belongs to, same on every display
-            let icon = NSRect(x: grid.minX + 2, y: cellArea.maxY, width: headerHeight - 16, height: headerHeight - 16)
+        if showsHeader, let app = targetApp {   // header: the app the window belongs to, same on every display
+            let size = look.layout.iconSize, icon = NSRect(x: grid.minX + 2, y: cellArea.maxY, width: size, height: size)
             app.icon?.draw(in: icon, from: .zero, operation: .sourceOver, fraction: 1)
             let name = NSAttributedString(string: app.localizedName ?? "", attributes: [
-                .font: NSFont.systemFont(ofSize: 20, weight: .medium), .foregroundColor: ink(look.header), .paragraphStyle: style])
+                .font: NSFont.systemFont(ofSize: look.layout.nameSize, weight: .medium), .foregroundColor: ink(look.header), .paragraphStyle: style])
             let s = name.size()
             name.draw(in: NSRect(x: icon.maxX + 12, y: icon.midY - s.height / 2, width: grid.maxX - icon.maxX - 12, height: s.height))
         }
@@ -248,10 +254,15 @@ final class GridView: NSView {
     }
 }
 
+// a theme can fade the panels on the other displays ("dimOthers") instead of, or as well as, drawing the focus ring
+func dimAlpha(_ g: GridView) -> CGFloat { g.panel.isKeyWindow ? 1 : look.layout.dimOthers.value }
+func refreshDim() { NSAnimationContext.runAnimationGroup { c in c.duration = 0.12; grids.forEach { $0.panel.animator().alphaValue = dimAlpha($0) } } }
+var panelsGlass = true   // what the pooled panels were built with; showGrid starts over when the theme's "glass" differs
+
 final class Panel: NSPanel {
     override var canBecomeKey: Bool { true }
     var grid: GridView? { grids.first { $0.panel === self } }
-    override func becomeKey() { super.becomeKey(); grid?.needsDisplay = true }
+    override func becomeKey() { super.becomeKey(); grid?.needsDisplay = true; if gridActive { refreshDim() } }
     override func resignKey() {   // the keyboard moving to another grid panel (Tab, a click on it) keeps the grid; anywhere else dismisses
         super.resignKey()
         grid?.needsDisplay = true
@@ -262,7 +273,9 @@ final class Panel: NSPanel {
 func makePanel(_ view: GridView) -> Panel {
     let panel = Panel(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
     let glass: NSView
-    if #available(macOS 26, *) {
+    if !panelsGlass {   // a theme with "glass": false gets a clear backdrop, so its panel fill is all there is behind the cells
+        glass = NSView(); glass.wantsLayer = true; glass.layer?.masksToBounds = true; glass.addSubview(view)
+    } else if #available(macOS 26, *) {
         let g = NSGlassEffectView(); g.contentView = view; glass = g
         g.wantsLayer = true; g.layer?.masksToBounds = true  // clip the backdrop too
     } else {
@@ -286,10 +299,11 @@ func showGrid() {
     moved = false; dragging = nil
     let screens = NSScreen.screens, ghosts = ghostFrames(), top = NSScreen.screens[0].frame.maxY
     let list = recordMode || !defaults.bool(forKey: "showList") ? [] : Array(presets.prefix(9))   // hiding the list leaves keys 1 to 9 working
-    let header: CGFloat = targetApp != nil && defaults.bool(forKey: "showHeader") ? 52 : 0
+    let header = targetApp != nil && defaults.bool(forKey: "showHeader")
     let dark = darkMode, theme = (try? loadTheme(themeID)) ?? (try! loadTheme("Default"))   // read on every open, so an edited theme file shows at once; a broken one falls back
     look = dark ? theme.dark : theme.light
-    let radius = max(look.panel.radius ?? 0, 0)
+    let radius = max(look.panel.radius ?? 0, 0), lay = look.layout
+    if lay.glass != panelsGlass { (grids + spare).forEach { $0.panel.orderOut(nil) }; grids = []; spare = []; panelsGlass = lay.glass }   // the backdrop is built with the panel
     while grids.count < screens.count { grids.append(spare.popLast() ?? GridView()) }
     while grids.count > screens.count { let g = grids.removeLast(); g.clear(); g.panel.orderOut(nil); spare.append(g) }
     let frame = original.map { NSRect(x: $0.0.x, y: top - $0.0.y - $0.1.height, width: $0.1.width, height: $0.1.height) }
@@ -297,7 +311,7 @@ func showGrid() {
     let keyFrame = (home ?? screenUnderCursor()).frame
     var key = grids[0]
     for (g, s) in zip(grids, screens) {
-        g.screen = s; g.list = list; g.headerHeight = header; g.clear()
+        g.screen = s; g.list = list; g.showsHeader = header; g.clear()
         g.ghosts = ghosts.map { screenFraction(of: $0, on: s) }.filter { !$0.isEmpty }
         if s.frame == keyFrame { key = g }
         if let r = frame, s.frame == home?.frame {
@@ -307,7 +321,9 @@ func showGrid() {
                 g.start = (x.lowerBound, y.lowerBound); g.end = (x.upperBound, y.upperBound); g.pending = true
             }
         }
-        let f = s.visibleFrame, w: CGFloat = 480, h = w * f.height / f.width + g.listHeight + g.headerHeight   // the grid keeps the display's aspect; the list and the header add to it
+        let f = s.visibleFrame, w = lay.width, cellsHigh = lay.cellsHeight ?? w * f.height / f.width - 2 * lay.padding   // without "cellsHeight" the cells keep the display's aspect
+        let h = cellsHigh + 2 * lay.padding + g.listHeight + (header ? lay.headerTop + lay.iconSize + lay.headerGap - lay.padding : 0)   // the list and the header add to the cells
+        g.panel.hasShadow = lay.shadow
         g.panel.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         g.panel.contentView?.layer?.cornerRadius = radius
         if #available(macOS 26, *) { (g.panel.contentView as? NSGlassEffectView)?.cornerRadius = radius }
@@ -319,7 +335,7 @@ func showGrid() {
     gridActive = true
     key.panel.makeKeyAndOrderFront(nil)
     key.panel.makeFirstResponder(key)
-    NSAnimationContext.runAnimationGroup { c in c.duration = 0.12; grids.forEach { $0.panel.animator().alphaValue = 1 } }
+    refreshDim()
 }
 func hideGrid() {
     recordMode = false
