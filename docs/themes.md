@@ -1,6 +1,6 @@
 # Themes
 
-A theme sets the colours, line widths and corner shapes of the grid panel. GridSnap has ten built-in themes, and you can make your own.
+A theme sets the colours, line widths, corner shapes and sizes of the grid panel. GridSnap has ten built-in themes, and you can make your own.
 
 Every theme has a light version and a dark version. GridSnap uses the one that matches macOS, so the panel changes when your Mac switches between light and dark.
 
@@ -59,6 +59,7 @@ A file from **Edit a Copy…** lists every value of both versions, so everything
 | `ghost` | A window you snapped earlier | `fill`, `stroke`, `lineWidth`, `radius` |
 | `selection` | The cells you selected | `fill`, `stroke`, `lineWidth`, `radius` |
 | `pending` | The cells that the window covers when the grid opens, before you select anything | `fill`, `stroke`, `lineWidth`, `radius` |
+| `hover` | The cell under the pointer, before you start a drag. Default gives it no fill and no stroke, so nothing is drawn. | `fill`, `stroke`, `lineWidth`, `radius` |
 | `preset` | A line in the preset list. The fill and stroke show while you click it. | `fill`, `stroke`, `lineWidth`, `radius`, `text` |
 | `keycap` | The number beside a preset | `fill`, `stroke`, `lineWidth`, `radius`, `text` |
 | `focusRing` | The outline of the panel that has the keyboard, when you have more than one display | `stroke`, `lineWidth` |
@@ -74,6 +75,29 @@ A file from **Edit a Copy…** lists every value of both versions, so everything
 | `radius` | How round the corners are, in points. `0` gives square corners, and a large number gives a pill or a circle. |
 
 `"spacing"` is not part of an element. It is the space between two cells, in points. `0` makes the cells touch, except at the halves, thirds and quarters of the display, where the gaps are wider. To remove those gaps too, turn off **Wider gaps at halves, thirds and quarters** in Settings.
+
+### Layout
+
+`"layout"` is not part of an element either. It is an object that sets the sizes of the panel:
+
+| Key | Value |
+|---|---|
+| `width` | The width of the panel, in points |
+| `cellsHeight` | The height of the cell area, in points. If you leave it out, the cell area has the shape of the display. |
+| `padding` | The space between the edge of the panel and the cells, in points |
+| `headerTop` | The space above the app's icon, in points |
+| `iconSize` | The size of the app's icon, in points |
+| `headerGap` | The space between the app's icon and the cells, in points |
+| `nameSize` | The font size of the app's name, in points |
+| `dimOthers` | How visible the panels on the other displays are, as a percentage in quotes. `"100%"` does not dim them. Below that, the panel under the pointer takes the keyboard. |
+| `shadow` | `true` gives the panel a shadow. Use it only with `"glass": false`. |
+| `glass` | `false` removes the glass behind the panel, so that the panel's `fill` is all that you see behind the cells |
+
+This layout gives a small panel of a fixed size, with no glass, and dims the panels on the other displays:
+
+```json
+"layout": { "width": 320, "cellsHeight": 195, "padding": 20, "headerTop": 20, "iconSize": 30, "headerGap": 12, "nameSize": 18, "dimOthers": "60%", "shadow": true, "glass": false }
+```
 
 ### Colours
 
