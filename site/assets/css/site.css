@@ -2552,6 +2552,7 @@ h2 {
 .art-private dl div {
   position: relative;
   padding: 4px 0;
+  text-align: center;
 }
 
 .art-private dl div + div::before {
@@ -2563,11 +2564,9 @@ h2 {
 }
 
 .art-private dt {
-  margin-left: -0.043em;
   font-size: clamp(64px, 7vw, 92px);
   line-height: 0.9;
   font-weight: 500;
-  letter-spacing: -0.06em;
   background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.28));
   -webkit-background-clip: text;
   background-clip: text;
