@@ -2,7 +2,7 @@
 
 GridSnap is an open source alternative to [Divvy](https://mizage.com/divvy/) for macOS. You press a shortcut, a grid appears, and you drag across the cells you want. The window then snaps to that area. You can save an area as a preset and apply it later with one keystroke.
 
-![Pressing the shortcut, dragging on the grid, and the window following](docs/demo.gif)
+![Pressing the shortcut and dragging on the grid to snap a window, snapping a second window beside it, applying a preset with a number key and undoing it, then snapping in three other themes](docs/demo.gif)
 
 ## Features
 
