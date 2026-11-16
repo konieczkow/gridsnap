@@ -2543,22 +2543,27 @@ h2 {
 
 .art-private dl {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 36px;
   width: 100%;
   margin: 0;
 }
 
 .art-private dl div {
-  padding: 4px 0 4px 18px;
-  border-left: 1px solid var(--line-2);
+  position: relative;
+  padding: 4px 0;
 }
 
-.art-private dl div:first-child {
-  padding-left: 0;
-  border-left: 0;
+.art-private dl div + div::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -18px;
+  width: 1px;
+  background: var(--line-2);
 }
 
 .art-private dt {
+  margin-left: -0.043em;
   font-size: clamp(64px, 7vw, 92px);
   line-height: 0.9;
   font-weight: 500;
@@ -3235,26 +3240,30 @@ h2 {
 }
 
 .facts {
-  display: flex;
-  gap: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 40px;
   margin-top: 32px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 
 .facts li {
-  flex: 1;
-  padding: 18px 0 18px 20px;
-  border-left: 1px solid var(--line);
+  position: relative;
+  padding: 18px 0;
 }
 
-.facts li:first-child {
-  padding-left: 0;
-  border-left: 0;
+.facts li + li::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -20px;
+  width: 1px;
+  background: var(--line);
 }
 
 .facts b {
   display: block;
+  margin-left: -0.03em;
   font-size: 34px;
   line-height: 1;
   font-weight: 550;
