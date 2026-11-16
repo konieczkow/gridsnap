@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GridSnap: snap windows to a grid on macOS</title>
+<meta name="description" content="GridSnap is a free, open source alternative to Divvy for macOS. Press a shortcut, drag across a grid, and the window snaps to that area.">
+<meta name="theme-color" content="#07080d">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://konieczkow.github.io/gridsnap/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="GridSnap">
+<meta property="og:title" content="GridSnap: draw where the window goes">
+<meta property="og:description" content="A free, open source alternative to Divvy for macOS. Press a shortcut, drag across a grid, and the window snaps to that area.">
+<meta property="og:url" content="https://konieczkow.github.io/gridsnap/">
+<meta property="og:image" content="https://konieczkow.github.io/gridsnap/assets/img/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The GridSnap grid panel over a desktop, with a window snapped to the left half of the display.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/Geist-Variable.woff2" crossorigin>
+<link rel="preload" as="image" type="image/webp" href="assets/img/wall-dark-1280.webp" imagesrcset="assets/img/wall-dark-1280.webp 1x, assets/img/wall-dark.webp 2x">
+<link rel="stylesheet" href="assets/css/site.css">
+<script>document.documentElement.classList.add("js");</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "GridSnap",
+  "description": "An open source alternative to Divvy for macOS. Press a shortcut, drag across a grid, and the window snaps to that area.",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "macOS 14 or later",
+  "license": "https://opensource.org/licenses/MIT",
+  "codeRepository": "https://github.com/konieczkow/gridsnap",
+  "downloadUrl": "https://github.com/konieczkow/gridsnap/releases/latest",
+  "author": { "@type": "Person", "name": "Maciej Gajewski" },
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body>
+
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-notes" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe680"/><stop offset="1" stop-color="#f6a821"/></linearGradient>
+    <linearGradient id="g-terminal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b4050"/><stop offset="1" stop-color="#14161d"/></linearGradient>
+    <linearGradient id="g-editor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f7bff"/><stop offset="1" stop-color="#4a34d8"/></linearGradient>
+  </defs>
+  <symbol id="app-notes" viewBox="0 0 64 64">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#g-notes)"/>
+    <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="#fff" stroke-opacity=".35"/>
+    <rect x="15" y="19" width="34" height="5" rx="2.5" fill="#fff"/>
+    <rect x="15" y="30" width="34" height="5" rx="2.5" fill="#fff" fill-opacity=".82"/>
+    <rect x="15" y="41" width="21" height="5" rx="2.5" fill="#fff" fill-opacity=".82"/>
+  </symbol>
+  <symbol id="app-terminal" viewBox="0 0 64 64">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#g-terminal)"/>
+    <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="#fff" stroke-opacity=".22"/>
+    <path d="M16 23l10 9-10 9" fill="none" stroke="#5ff08a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="31" y="38" width="17" height="5" rx="2.5" fill="#fff"/>
+  </symbol>
+  <symbol id="app-editor" viewBox="0 0 64 64">
+    <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#g-editor)"/>
+    <rect x="2.5" y="2.5" width="59" height="59" rx="13.5" fill="none" stroke="#fff" stroke-opacity=".3"/>
+    <path d="M26 17c-5 0-6 2.5-6 6.5v3c0 3-1.5 5-4.5 5.5 3 .5 4.5 2.5 4.5 5.5v3c0 4 1 6.5 6 6.5M38 17c5 0 6 2.5 6 6.5v3c0 3 1.5 5 4.5 5.5-3 .5-4.5 2.5-4.5 5.5v3c0 4-1 6.5-6 6.5" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="i-status" viewBox="0 0 22 16">
+    <rect x="1" y="1.5" width="5.4" height="5.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="8.3" y="1.5" width="5.4" height="5.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="15.6" y="1.5" width="5.4" height="5.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/>
+    <rect x="1" y="9.1" width="5.4" height="5.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="8.3" y="9.1" width="5.4" height="5.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="15.6" y="9.1" width="5.4" height="5.4" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.3"/>
+  </symbol>
+  <symbol id="i-github" viewBox="0 0 16 16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 20 20"><path d="M10 3v9.500M5.750 8.75 10 13l4.250-4.25M4 16.5h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 20 20"><rect x="7" y="7" width="9.5" height="9.5" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.800 12.5h-.3a1.500 1.5 0 0 1-1.5-1.5V5a2 2 0 0 1 2-2h6a1.500 1.5 0 0 1 1.5 1.5v.300" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 20 20"><path d="m4.500 10.5 3.5 3.5 7.5-8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2.5v2M10 15.5v2M2.500 10h2M15.500 10h2M4.700 4.7l1.400 1.4M13.900 13.9l1.400 1.4M4.700 15.3l1.400-1.4M13.900 6.1l1.400-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 20 20"><path d="M16.500 11.6A6.800 6.8 0 0 1 8.4 3.5a6.800 6.8 0 1 0 8.1 8.1Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 20 20"><path d="M4 10a6 6 0 1 0 1.9-4.4M4.200 3.2v3.300h3.300" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 20 20"><path d="M6.500 13.5l7-7M7.500 6.5h6v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-star" viewBox="0 0 20 20"><path d="m10 2.8 2.2 4.5 5 .7-3.6 3.5.850 4.9L10 14.1l-4.45 2.3.850-4.9L2.800 8l5-.7L10 2.8Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 20 20"><path d="m6 8 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4.5v11M4.500 10h11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-cursor" viewBox="0 0 28 28"><path d="M8 4.5v17.300l4.500-4.2 3.1 7.1 3.2-1.4-3.1-7 6.2-.3L8 4.5Z" fill="#111" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+</svg>
+
+<a class="skip" href="#main">Skip to the content</a>
+
+<header class="nav" id="top">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="GridSnap, back to the top">
+      <img src="assets/img/icon-64.webp" width="28" height="28" alt="" fetchpriority="high">
+      <span>GridSnap</span>
+    </a>
+    <nav class="nav-links" id="nav-links" aria-label="Sections">
+      <a href="#features">Features</a>
+      <a href="#themes">Themes</a>
+      <a href="#install">Install</a>
+      <a href="#source">Source</a>
+      <a href="https://github.com/konieczkow/gridsnap/blob/master/docs/usage.md">Docs</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-ghost btn-sm" href="https://github.com/konieczkow/gridsnap" aria-label="GridSnap on GitHub">
+        <svg class="i"><use href="#i-github"/></svg><span class="gh-label">GitHub</span><span class="gh-stars" data-stars hidden><svg class="i"><use href="#i-star"/></svg><b></b></span>
+      </a>
+      <a class="btn btn-primary btn-sm" href="#install">Download</a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-links"><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="wrap hero-in">
+    <p class="eyebrow"><span class="dot"></span>Free and open source for macOS</p>
+    <h1>Draw where the window goes.</h1>
+    <p class="lede">Press a shortcut and a grid appears. Drag across the cells you want, and the window snaps to that area. GridSnap is an open source alternative to Divvy for macOS.</p>
+    <div class="cta">
+      <a class="btn btn-primary btn-lg" href="https://github.com/konieczkow/gridsnap/releases/latest" data-release>
+        <svg class="i"><use href="#i-download"/></svg><span>Download for macOS</span>
+      </a>
+      <div class="cmd" data-copy="brew install --cask konieczkow/tap/gridsnap">
+        <code><span class="cmd-p">$</span> brew install --cask konieczkow/tap/gridsnap</code>
+        <button class="cmd-copy" type="button" aria-label="Copy the Homebrew command"><svg class="i i-copy"><use href="#i-copy"/></svg><svg class="i i-done"><use href="#i-check"/></svg></button>
+      </div>
+    </div>
+    <p class="fineprint"><span data-version></span><span>macOS 14 or later</span><span>Apple Silicon and Intel</span><span>MIT License</span></p>
+  </div>
+
+  <div class="wrap demo">
+    <div class="desk" id="desk" tabindex="0" role="application" aria-label="Live demo of GridSnap. Press D to show the grid, use the arrow keys to move the selection, Return to snap the window and Escape to cancel.">
+      <noscript><img class="desk-fallback" src="assets/img/demo.webp" width="1280" height="800" alt="The GridSnap grid panel in the middle of a desktop. A Notes window is snapped to the left half of the display."></noscript>
+    </div>
+    <div class="demo-bar">
+      <div class="demo-buttons">
+        <button class="chip" type="button" data-act="grid"><span>Show grid</span><kbd>⌃</kbd><kbd>⌥</kbd><kbd>D</kbd></button>
+        <button class="chip" type="button" data-act="undo"><span>Undo</span><kbd>⌃</kbd><kbd>⌥</kbd><kbd>Z</kbd></button>
+        <button class="chip chip-icon" type="button" data-act="replay" aria-label="Play the demo again"><svg class="i"><use href="#i-replay"/></svg></button>
+      </div>
+      <p class="demo-hint" aria-live="polite"><span class="pulse"></span><span data-hint>This demo is live. Drag across the grid.</span></p>
+      <div class="demo-options">
+        <label class="select"><span class="sr">Theme</span><select data-theme-select aria-label="Theme of the grid"></select><svg class="i"><use href="#i-chevron"/></svg></label>
+        <div class="seg" role="group" aria-label="Appearance">
+          <button type="button" data-mode="light" aria-pressed="false" aria-label="Light"><svg class="i"><use href="#i-sun"/></svg></button>
+          <button type="button" data-mode="dark" aria-pressed="true" aria-label="Dark"><svg class="i"><use href="#i-moon"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <ol class="steps" id="steps">
+      <li data-step="1">
+        <span class="step-n">01</span>
+        <h2>Press <kbd>⌃</kbd><kbd>⌥</kbd><kbd>D</kbd></h2>
+        <p>A grid panel appears on every display. It outlines the cells that the window covers now.</p>
+      </li>
+      <li data-step="2">
+        <span class="step-n">02</span>
+        <h2>Drag across the cells</h2>
+        <p>The window follows your drag, so you see the result before you release.</p>
+      </li>
+      <li data-step="3">
+        <span class="step-n">03</span>
+        <h2>Release to snap</h2>
+        <p>The window stays where you put it. To cancel instead, press <kbd>Esc</kbd> and the window returns to where it was.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="wrap">
+    <header class="head">
+      <p class="label"><span>01</span>Features</p>
+      <h2>Move a window with the mouse, the keyboard, or one keystroke.</h2>
+    </header>
+
+    <div class="bento">
+      <article class="card card-keys reveal">
+        <div class="card-art art-keys">
+          <div class="keys-panel" id="keys-panel"></div>
+          <div class="keys-row" id="keys-row" aria-hidden="true">
+            <kbd data-k="shift" class="wide">⇧ Shift</kbd>
+            <kbd data-k="left">←</kbd><kbd data-k="down">↓</kbd><kbd data-k="up">↑</kbd><kbd data-k="right">→</kbd>
+            <kbd data-k="return" class="wide">Return ⏎</kbd>
+          </div>
+        </div>
+        <div class="card-text">
+          <h3>Use the keyboard</h3>
+          <p>The arrow keys move the selection. Shift with an arrow key makes it larger or smaller. Return snaps the window.</p>
+        </div>
+      </article>
+
+      <article class="card card-presets reveal">
+        <div class="card-art art-presets" id="presets-art" aria-hidden="true"></div>
+        <div class="card-text">
+          <h3>Save an area as a preset</h3>
+          <p>Hold Shift when you release, and GridSnap saves the area. Apply it later with a number key on the grid, or give it a shortcut that works everywhere.</p>
+        </div>
+      </article>
+
+      <article class="card card-displays reveal">
+        <div class="card-art art-displays" aria-hidden="true">
+          <div class="mons">
+            <div class="mon mon-a"><div class="mon-screen"><span class="mon-win"></span><span class="mon-panel"><i></i></span></div><span class="mon-stand"></span></div>
+            <div class="mon mon-b"><div class="mon-screen"><span class="mon-win"></span><span class="mon-panel"><i></i></span></div><span class="mon-base"></span></div>
+            <kbd class="mon-tab">Tab ⇥</kbd>
+          </div>
+        </div>
+        <div class="card-text">
+          <h3>A grid on every display</h3>
+          <p>Each display has its own grid. To move a window to another display, drag on the grid there, or press Tab.</p>
+        </div>
+      </article>
+
+      <article class="card card-size reveal">
+        <div class="card-art art-size">
+          <div class="size-preview" id="size-panel"></div>
+          <div class="size-controls">
+            <div class="stepper" data-key="cols" data-min="1" data-max="24" data-step="1"><span class="stepper-l" id="l-cols">Columns</span><button type="button" aria-label="Fewer columns">−</button><output aria-labelledby="l-cols">12</output><button type="button" aria-label="More columns">+</button></div>
+            <div class="stepper" data-key="rows" data-min="1" data-max="24" data-step="1"><span class="stepper-l" id="l-rows">Rows</span><button type="button" aria-label="Fewer rows">−</button><output aria-labelledby="l-rows">8</output><button type="button" aria-label="More rows">+</button></div>
+            <div class="stepper" data-key="gap" data-min="0" data-max="64" data-step="2"><span class="stepper-l" id="l-gap">Gap</span><button type="button" aria-label="Smaller gap">−</button><output aria-labelledby="l-gap">8</output><button type="button" aria-label="Larger gap">+</button></div>
+            <div class="size-screen" id="size-screen" aria-hidden="true"><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <div class="card-text">
+          <h3>Set the grid to suit your display</h3>
+          <p>Choose up to 24 columns and 24 rows, and the gap between snapped windows. GridSnap can move the focused window or the one under the cursor.</p>
+        </div>
+      </article>
+
+      <article class="card card-undo reveal">
+        <div class="card-art art-undo" aria-hidden="true">
+          <div class="undo-screen"><span class="undo-win"></span></div>
+          <div class="undo-keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>Z</kbd></div>
+        </div>
+        <div class="card-text">
+          <h3>Undo the last snap</h3>
+          <p>Press ⌃⌥Z to put the window back where it was. Press it again to redo the snap.</p>
+        </div>
+      </article>
+
+      <article class="card card-menu reveal">
+        <div class="card-art art-menu" aria-hidden="true">
+          <div class="mbar"><span class="mbar-item is-on"><svg class="i"><use href="#i-status"/></svg></span><span class="mbar-clock">Mon 16 Nov&ensp;9:41</span></div>
+          <ul class="menu">
+            <li><span>Undo Last Snap</span><kbd>⌃⌥Z</kbd></li>
+            <li><span>Presets</span><kbd>›</kbd></li>
+            <li><span>Settings…</span><kbd>⌘,</kbd></li>
+            <li><span><b>✓</b>Launch at Login</span></li>
+            <li class="sep"></li>
+            <li><span>Quit GridSnap</span><kbd>⌘Q</kbd></li>
+          </ul>
+        </div>
+        <div class="card-text">
+          <h3>Lives in the menu bar</h3>
+          <p>GridSnap has no Dock icon. It stays in the menu bar and can start when you log in.</p>
+        </div>
+      </article>
+
+      <article class="card card-private reveal">
+        <div class="card-art art-private" aria-hidden="true">
+          <dl>
+            <div><dt>0</dt><dd>network requests</dd></div>
+            <div><dt>0</dt><dd>analytics</dd></div>
+            <div><dt>0</dt><dd>accounts</dd></div>
+          </dl>
+        </div>
+        <div class="card-text">
+          <h3>Nothing leaves your Mac</h3>
+          <p>GridSnap does not use the network, collect analytics, or need an account.</p>
+        </div>
+      </article>
+
+      <article class="card card-keysheet reveal">
+        <div class="card-text">
+          <h3>Every shortcut</h3>
+          <p>You can change the first two in Settings, and give any preset a shortcut of its own.</p>
+        </div>
+        <dl class="sheet">
+          <div><dt><kbd>⌃</kbd><kbd>⌥</kbd><kbd>D</kbd></dt><dd>Show the grid</dd></div>
+          <div><dt><kbd>⌃</kbd><kbd>⌥</kbd><kbd>Z</kbd></dt><dd>Undo the last snap, or redo it</dd></div>
+          <div><dt><kbd>⌃</kbd><kbd>⌥</kbd><kbd>F</kbd></dt><dd>Apply the Full screen preset</dd></div>
+          <div><dt><kbd>←</kbd><kbd>↓</kbd><kbd>↑</kbd><kbd>→</kbd></dt><dd>Move the selection</dd></div>
+          <div><dt><kbd>⇧</kbd><kbd>→</kbd><i>or</i><kbd>⇧</kbd><kbd>↑</kbd></dt><dd>Make the selection larger</dd></div>
+          <div><dt><kbd>⇧</kbd><kbd>←</kbd><i>or</i><kbd>⇧</kbd><kbd>↓</kbd></dt><dd>Make the selection smaller</dd></div>
+          <div><dt><kbd>Return</kbd></dt><dd>Snap the window to the selection</dd></div>
+          <div><dt><kbd>Tab</kbd></dt><dd>Move the selection to the next display</dd></div>
+          <div><dt><kbd>1</kbd><i>to</i><kbd>9</kbd></dt><dd>Apply a preset</dd></div>
+          <div><dt><kbd>Esc</kbd></dt><dd>Cancel, and return the window to where it was</dd></div>
+        </dl>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="themes">
+  <div class="wrap">
+    <header class="head head-split">
+      <div>
+        <p class="label"><span>02</span>Themes</p>
+        <h2>Ten themes are built in. You can also write your own.</h2>
+      </div>
+      <p class="head-side">Every theme has a light and a dark version, and GridSnap uses the one that matches macOS. A theme is a small JSON file, and it only needs to hold what it changes. Choose a theme, then edit it below and watch both grids change.</p>
+    </header>
+
+    <div class="lab reveal" id="lab">
+      <div class="lab-themes" role="group" aria-label="Themes" data-themes></div>
+      <div class="lab-stage">
+        <div class="lab-view lab-dark"><span class="lab-tag">Dark</span><div class="lab-panel" data-panel="dark"></div></div>
+        <div class="lab-view lab-light"><span class="lab-tag">Light</span><div class="lab-panel" data-panel="light"></div></div>
+      </div>
+      <div class="lab-side">
+        <div class="editor">
+          <div class="editor-bar">
+            <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="editor-file" data-file>Default.json</span>
+            <div class="editor-actions">
+              <button class="mini" type="button" data-act="reset">Reset</button>
+              <button class="mini mini-primary" type="button" data-act="save"><svg class="i"><use href="#i-download"/></svg>Save file</button>
+            </div>
+          </div>
+          <div class="editor-body">
+            <div class="editor-grid">
+              <pre class="editor-hl" aria-hidden="true"><code data-hl></code></pre>
+              <textarea class="editor-input" data-input spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Theme file. Edit the JSON to change the grids above."></textarea>
+            </div>
+          </div>
+          <p class="editor-note" data-note role="status"></p>
+        </div>
+        <div class="lab-notes">
+          <div class="lab-accent">
+            <span id="l-accent">Accent colour</span>
+            <div class="accents" role="group" aria-labelledby="l-accent" data-accents></div>
+            <p>A theme can use <code>"accent"</code> as a colour. It is the accent colour you chose in System Settings.</p>
+          </div>
+          <div class="lab-accent">
+            <span>What a theme can style</span>
+            <dl>
+              <dt>panel</dt><dd>The panel behind everything</dd>
+              <dt>header</dt><dd>The name of the app above the cells</dd>
+              <dt>cell</dt><dd>One cell of the grid</dd>
+              <dt>ghost</dt><dd>A window you snapped earlier</dd>
+              <dt>selection</dt><dd>The cells you selected</dd>
+              <dt>pending</dt><dd>The cells the window covers when the grid opens</dd>
+              <dt>preset</dt><dd>A line in the preset list</dd>
+              <dt>keycap</dt><dd>The number beside a preset</dd>
+              <dt>focusRing</dt><dd>The outline of the panel that has the keyboard</dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="aside">To install a theme, put the file in <code>~/Library/Application Support/GridSnap/Themes</code> and choose it in Settings. <a class="link" href="https://github.com/konieczkow/gridsnap/blob/master/docs/themes.md">Read the theme guide<svg class="i"><use href="#i-arrow"/></svg></a></p>
+  </div>
+</section>
+
+<section class="section" id="install">
+  <div class="wrap">
+    <header class="head">
+      <p class="label"><span>03</span>Install</p>
+      <h2>Install GridSnap in a minute.</h2>
+    </header>
+
+    <div class="install">
+      <article class="way reveal">
+        <p class="way-n">Homebrew</p>
+        <h3>Install it with one command</h3>
+        <div class="cmd cmd-block" data-copy="brew install --cask konieczkow/tap/gridsnap">
+          <code><span class="cmd-p">$</span> brew install --cask konieczkow/tap/gridsnap</code>
+          <button class="cmd-copy" type="button" aria-label="Copy the Homebrew command"><svg class="i i-copy"><use href="#i-copy"/></svg><svg class="i i-done"><use href="#i-check"/></svg></button>
+        </div>
+        <p class="way-note">Homebrew also keeps GridSnap up to date when you run <code>brew upgrade</code>.</p>
+      </article>
+
+      <article class="way reveal">
+        <p class="way-n">Direct download</p>
+        <h3>Download the app</h3>
+        <a class="btn btn-primary btn-lg" href="https://github.com/konieczkow/gridsnap/releases/latest" data-release>
+          <svg class="i"><use href="#i-download"/></svg><span>Download for macOS</span>
+        </a>
+        <p class="way-note"><span data-size></span>Unzip the file and drag GridSnap to your Applications folder. <a class="link" href="https://github.com/konieczkow/gridsnap/releases">See all releases<svg class="i"><use href="#i-arrow"/></svg></a></p>
+      </article>
+
+      <article class="first reveal">
+        <div class="first-text">
+          <p class="way-n">First launch</p>
+          <h3>Allow GridSnap to move windows</h3>
+          <p>When you first open GridSnap, it asks for the Accessibility permission. macOS requires this permission before an app can move the windows of other apps.</p>
+          <ol>
+            <li>Click the GridSnap icon in the menu bar and choose <b>Grant Accessibility…</b></li>
+            <li>In System Settings, turn on GridSnap under Privacy &amp; Security › Accessibility.</li>
+            <li>Press <kbd>⌃</kbd><kbd>⌥</kbd><kbd>D</kbd>. GridSnap notices the permission by itself, so you do not need to restart it.</li>
+          </ol>
+        </div>
+        <div class="first-art" aria-hidden="true">
+          <div class="prefs">
+            <div class="prefs-bar"><span class="lights"><i></i><i></i><i></i></span><span>Accessibility</span></div>
+            <p>Allow the applications below to control your computer.</p>
+            <ul>
+              <li class="is-app"><img src="assets/img/icon-64.webp" width="26" height="26" alt="" loading="lazy"><span>GridSnap</span><i class="switch is-on"></i></li>
+              <li><span class="ph ph-a"></span><span class="ph-t"></span><i class="switch"></i></li>
+              <li><span class="ph ph-b"></span><span class="ph-t ph-t2"></span><i class="switch"></i></li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </div>
+    <p class="aside">GridSnap needs macOS 14 or later and runs on Apple Silicon and Intel Macs. It is tested on macOS 26, where the grid uses the glass material. On older versions the grid is frosted instead.</p>
+  </div>
+</section>
+
+<section class="section" id="source">
+  <div class="wrap">
+    <div class="source">
+      <div class="source-text">
+        <p class="label"><span>04</span>Open source</p>
+        <h2>Short enough to read before you trust it.</h2>
+        <p>GridSnap asks for the Accessibility permission, so you should be able to check what it does with it. The whole app is about 1,300 lines of Swift in 11 files. It has no third-party dependencies and no Xcode project. One shell script builds it.</p>
+        <ul class="facts">
+          <li><b>11</b><span>Swift files</span></li>
+          <li><b>0</b><span>dependencies</span></li>
+          <li><b>MIT</b><span>License</span></li>
+        </ul>
+        <div class="cta cta-left">
+          <a class="btn btn-light" href="https://github.com/konieczkow/gridsnap"><svg class="i"><use href="#i-github"/></svg><span>Read the source</span></a>
+          <a class="btn btn-ghost" href="https://github.com/konieczkow/gridsnap/blob/master/docs/development.md"><span>Build it yourself</span><svg class="i"><use href="#i-arrow"/></svg></a>
+        </div>
+      </div>
+      <div class="source-art reveal">
+        <div class="term">
+          <div class="term-bar"><span class="lights" aria-hidden="true"><i></i><i></i><i></i></span><span>gridsnap</span></div>
+          <pre class="term-body" tabindex="0" role="region" aria-label="Terminal session that lists the source files and builds the app"><code><span class="t-p">$</span> git clone https://github.com/konieczkow/gridsnap.git
+<span class="t-p">$</span> cd gridsnap <span class="t-o">&amp;&amp;</span> ls Sources
+<span class="t-f">AX.swift</span>              <span class="t-c"># finds and moves windows</span>
+<span class="t-f">BuiltinThemes.swift</span>   <span class="t-c"># the ten built-in themes</span>
+<span class="t-f">Defaults.swift</span>        <span class="t-c"># stored settings</span>
+<span class="t-f">Grid.swift</span>            <span class="t-c"># the grid overlay</span>
+<span class="t-f">Hotkeys.swift</span>         <span class="t-c"># global shortcuts</span>
+<span class="t-f">Menu.swift</span>            <span class="t-c"># the menu bar menu</span>
+<span class="t-f">Presets.swift</span>         <span class="t-c"># presets</span>
+<span class="t-f">SettingsWindow.swift</span>  <span class="t-c"># the Settings window</span>
+<span class="t-f">ShortcutButton.swift</span>  <span class="t-c"># records a shortcut</span>
+<span class="t-f">Themes.swift</span>          <span class="t-c"># reads and checks a theme</span>
+<span class="t-f">main.swift</span>            <span class="t-c"># startup</span>
+<span class="t-p">$</span> ./build.sh install
+<span class="t-g">built build/GridSnap.app (signed: GridSnap Dev)</span>
+<span class="t-g">installed /Applications/GridSnap.app</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="questions">
+  <div class="wrap">
+    <div class="faq">
+      <header class="faq-head">
+        <p class="label"><span>05</span>Questions</p>
+        <h2>Before you install.</h2>
+        <p>If your question is not here, <a class="link" href="https://github.com/konieczkow/gridsnap/issues">open an issue on GitHub<svg class="i"><use href="#i-arrow"/></svg></a></p>
+      </header>
+      <div class="faq-list">
+        <details>
+          <summary>Is GridSnap free?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>Yes. GridSnap is free and open source, released under the MIT License.</p>
+        </details>
+        <details>
+          <summary>Why does GridSnap need the Accessibility permission?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>macOS does not let an app move or resize the windows of other apps without this permission. GridSnap uses it to find the window, read its position and size, and change them.</p>
+        </details>
+        <details>
+          <summary>Which Macs does it run on?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>GridSnap needs macOS 14 or later and runs on Apple Silicon and Intel Macs. It is tested on macOS 26, where the grid uses the glass material. On older versions the grid is frosted instead.</p>
+        </details>
+        <details>
+          <summary>Does it work with more than one display?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>Yes. Each display has its own grid panel. When you select cells on a panel, the window snaps to the display of that panel. With the keyboard, press Tab to move the selection to the next display.</p>
+        </details>
+        <details>
+          <summary>Can I change the shortcuts?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>Yes. In Settings you can change the shortcut that shows the grid and the shortcut that undoes a snap. Each preset can also have its own shortcut.</p>
+        </details>
+        <details>
+          <summary>What can GridSnap not do?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>GridSnap cannot snap a window that is in full-screen mode. Some apps also set a minimum window size and will not shrink to a small area. Such a window stays on the screen and overlaps the neighbouring cells.</p>
+        </details>
+        <details>
+          <summary>How do I remove GridSnap?<svg class="i"><use href="#i-plus"/></svg></summary>
+          <p>Choose Quit GridSnap from its menu, then move GridSnap from your Applications folder to the Trash. If you installed it with Homebrew, run <code>brew uninstall --cask gridsnap</code> instead.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <div class="final-in reveal">
+      <img src="assets/img/icon-256.webp" width="112" height="112" alt="" loading="lazy">
+      <h2>Put your windows in order.</h2>
+      <p>GridSnap is free. It takes a minute to install.</p>
+      <div class="cta">
+        <a class="btn btn-primary btn-lg" href="https://github.com/konieczkow/gridsnap/releases/latest" data-release>
+          <svg class="i"><use href="#i-download"/></svg><span>Download for macOS</span>
+        </a>
+        <a class="btn btn-glass btn-lg" href="https://github.com/konieczkow/gridsnap"><svg class="i"><use href="#i-github"/></svg><span>View on GitHub</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-in">
+    <div class="foot-brand">
+      <a class="brand" href="#top"><img src="assets/img/icon-64.webp" width="24" height="24" alt="" loading="lazy"><span>GridSnap</span></a>
+      <p>An open source alternative to Divvy for macOS.</p>
+    </div>
+    <nav class="foot-links" aria-label="Documentation and project links">
+      <div>
+        <h3>Docs</h3>
+        <a href="https://github.com/konieczkow/gridsnap/blob/master/docs/usage.md">Using GridSnap</a>
+        <a href="https://github.com/konieczkow/gridsnap/blob/master/docs/themes.md">Themes</a>
+        <a href="https://github.com/konieczkow/gridsnap/blob/master/docs/development.md">Building GridSnap</a>
+      </div>
+      <div>
+        <h3>Project</h3>
+        <a href="https://github.com/konieczkow/gridsnap">Source code</a>
+        <a href="https://github.com/konieczkow/gridsnap/releases">Releases</a>
+        <a href="https://github.com/konieczkow/gridsnap/issues">Issues</a>
+      </div>
+    </nav>
+  </div>
+  <div class="wrap foot-legal">
+    <p>© 2026 Maciej Gajewski. Released under the <a href="https://github.com/konieczkow/gridsnap/blob/master/LICENSE">MIT License</a>.</p>
+    <p>This site uses no cookies and no analytics. GridSnap is not affiliated with Mizage, the maker of Divvy.</p>
+  </div>
+</footer>
+
+<script src="assets/js/themes.js" defer></script>
+<script src="assets/js/panel.js" defer></script>
+<script src="assets/js/desktop.js" defer></script>
+<script src="assets/js/lab.js" defer></script>
+<script src="assets/js/site.js" defer></script>
+</body>
+</html>

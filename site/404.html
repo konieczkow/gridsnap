@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page not found · GridSnap</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#07080d">
+<style>
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{display:grid;place-items:center;padding:24px;background:radial-gradient(60% 50% at 50% 0%,rgba(47,125,246,.22),transparent 70%),#07080d;color:#eef0f7;font:400 17px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;text-align:center}
+main{max-width:460px}
+svg{width:92px;height:92px;filter:drop-shadow(0 18px 30px rgba(0,0,0,.6))}
+.c{font:500 12px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.1em;color:#6aa9ff;margin:34px 0 0}
+h1{margin:16px 0 0;font-size:clamp(34px,7vw,52px);line-height:1.02;letter-spacing:-.045em;font-weight:600}
+p{margin:16px 0 0;color:#a3a9bc}
+a{display:inline-flex;align-items:center;height:48px;margin-top:30px;padding:0 22px;border-radius:13px;background:linear-gradient(180deg,#3d84f7,#1f62dc);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 10px 30px -8px rgba(47,125,246,.7);color:#fff;font-weight:500;text-decoration:none}
+a:hover{filter:brightness(1.08)}
+a:focus-visible{outline:2px solid #6aa9ff;outline-offset:3px}
+</style>
+</head>
+<body>
+<main>
+  <svg viewBox="0 0 64 64" aria-hidden="true">
+    <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4c5679"/><stop offset="1" stop-color="#1d2034"/></linearGradient></defs>
+    <rect x="1" y="1" width="62" height="62" rx="15" fill="url(#g)"/>
+    <rect x="1.5" y="1.5" width="61" height="61" rx="14.5" fill="none" stroke="#fff" stroke-opacity=".14"/>
+    <rect x="11.5" y="11.5" width="18.5" height="18.5" rx="3" fill="#2f7df6" stroke="#6aa9ff" stroke-width=".8"/>
+    <rect x="34" y="11.5" width="18.5" height="18.5" rx="3" fill="#45464c" stroke="#6a6b72" stroke-width=".8"/>
+    <rect x="11.5" y="34" width="18.5" height="18.5" rx="3" fill="#45464c" stroke="#6a6b72" stroke-width=".8"/>
+    <rect x="34" y="34" width="18.5" height="18.5" rx="3" fill="#45464c" stroke="#6a6b72" stroke-width=".8"/>
+  </svg>
+  <p class="c">ERROR 404</p>
+  <h1>This page is not on the grid.</h1>
+  <p>The address may be wrong, or the page may have moved.</p>
+  <a id="home" href="/">Go to the GridSnap home page</a>
+</main>
+<script>
+(function () {
+  var first = location.pathname.split("/")[1];
+  if (/\.github\.io$/.test(location.hostname) && first) document.getElementById("home").href = "/" + first + "/";
+})();
+</script>
+</body>
+</html>
