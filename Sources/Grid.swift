@@ -209,7 +209,7 @@ final class GridView: NSView {
             paint(box(NSRect(x: x0, y: y0, width: max(x1 - x0, 0), height: max(y1 - y0, 0)), s), s)
         }
         for x in 0..<cols { for y in 0..<rows { cells(NSRect(x: x, y: y, width: 1, height: 1), look.cell) } }
-        let v = screen.visibleFrame, c = CGFloat(cols), r = CGFloat(rows)
+        let v = screen.usableFrame, c = CGFloat(cols), r = CGFloat(rows)
         for u in ghosts {
             cells(NSRect(x: u.minX * c, y: u.minY * r, width: u.width * c, height: u.height * r), look.ghost, tolX: 2 * c / v.width, tolY: 2 * r / v.height)
         }
@@ -291,7 +291,7 @@ func showGrid() {
                 g.start = (x.lowerBound, y.lowerBound); g.end = (x.upperBound, y.upperBound); g.pending = true
             }
         }
-        let f = s.visibleFrame, w: CGFloat = 480, h = w * f.height / f.width + g.listHeight + g.headerHeight   // the grid keeps the display's aspect; the list and the header add to it
+        let f = s.usableFrame, w: CGFloat = 480, h = w * f.height / f.width + g.listHeight + g.headerHeight   // the grid keeps the display's aspect; the list and the header add to it
         g.panel.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
         g.panel.contentView?.layer?.cornerRadius = radius
         if #available(macOS 26, *) { (g.panel.contentView as? NSGlassEffectView)?.cornerRadius = radius }
