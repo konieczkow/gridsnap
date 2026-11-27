@@ -33,6 +33,7 @@ All the code is in `Sources/`:
 |---|---|
 | `main.swift` | Startup |
 | `AX.swift` | The code that finds and moves windows |
+| `Screens.swift` | The area of each display that windows may use, without the menu bar and the Dock |
 | `Grid.swift` | The grid overlay |
 | `Themes.swift` | The code that reads a theme and finds its problems |
 | `BuiltinThemes.swift` | The ten built-in themes, as JSON |

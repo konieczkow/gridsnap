@@ -27,7 +27,6 @@ func windowUnderCursor() -> AXUIElement? {
 func pickTarget() -> AXUIElement? { (defaults.bool(forKey: "underCursor") ? windowUnderCursor() : nil) ?? focusedWindow() }
 func pidOf(_ win: AXUIElement) -> pid_t { var pid: pid_t = 0; AXUIElementGetPid(win, &pid); return pid }
 func appOf(_ win: AXUIElement) -> NSRunningApplication? { NSRunningApplication(processIdentifier: pidOf(win)) }
-func screenUnderCursor() -> NSScreen { NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? .main! }
 
 func axSet(_ win: AXUIElement, _ pos: CGPoint, _ size: CGSize? = nil) {
     var pos = pos
@@ -52,22 +51,9 @@ func applyFrame(_ win: AXUIElement, _ r: NSRect) {
     let pos = CGPoint(x: r.minX, y: top - r.maxY)
     axSet(win, pos, CGSize(width: r.width, height: r.height))
     guard let f = axFrame(win),
-          let v = NSScreen.screens.first(where: { NSMouseInRect(NSPoint(x: r.midX, y: r.midY), $0.frame, false) })?.visibleFrame else { return }
+          let v = NSScreen.screens.first(where: { NSMouseInRect(NSPoint(x: r.midX, y: r.midY), $0.frame, false) })?.usableFrame else { return }
     let fit = CGPoint(x: max(min(pos.x, v.maxX - f.1.width), v.minX), y: max(min(pos.y, top - v.minY - f.1.height), top - v.maxY))
     if abs(fit.x - f.0.x) > 1 || abs(fit.y - f.0.y) > 1 { axSet(win, fit) }
-}
-func screenFrame(fraction r: NSRect, on screen: NSScreen) -> NSRect {
-    let g = CGFloat(max(defaults.double(forKey: "gap"), 0)) / 2   // half on the screen edge, half on each frame = one gap everywhere
-    let f = screen.visibleFrame.insetBy(dx: g, dy: g)
-    return NSRect(x: f.minX + r.minX * f.width, y: f.minY + r.minY * f.height,
-                  width: r.width * f.width, height: r.height * f.height).insetBy(dx: g, dy: g)
-}
-func screenFraction(of r: NSRect, on screen: NSScreen) -> NSRect {
-    let g = CGFloat(max(defaults.double(forKey: "gap"), 0)) / 2
-    let f = screen.visibleFrame.insetBy(dx: g, dy: g), r = r.insetBy(dx: -g, dy: -g)
-    guard f.width > 0, f.height > 0 else { return .null }
-    return NSRect(x: (r.minX - f.minX) / f.width, y: (r.minY - f.minY) / f.height, width: r.width / f.width, height: r.height / f.height)
-        .intersection(NSRect(x: 0, y: 0, width: 1, height: 1))
 }
 
 var snapped: [AXUIElement] = []
