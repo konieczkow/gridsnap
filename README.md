@@ -52,3 +52,7 @@ To undo the last snap, press ⌃⌥Z.
 ## License
 
 GridSnap is released under the [MIT License](LICENSE).
+
+## Support
+
+If GridSnap is useful to you, you can [buy me a coffee](https://buymeacoffee.com/konieczkow).
